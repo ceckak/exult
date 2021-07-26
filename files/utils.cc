@@ -60,6 +60,10 @@
 #  include <sys/param.h> // for MAXPATHLEN
 #endif
 
+#ifdef ANDROID
+#  include <SDL_system.h>
+#endif
+
 using std::cerr;
 using std::string;
 using std::ios;
@@ -635,6 +639,8 @@ string Get_home() {
 			home_dir = ".";
 	}
 #endif // PORTABLE_WIN32_EXULT
+#elif defined(ANDROID)
+        return SDL_AndroidGetInternalStoragePath();
 #else
 	const char *home = nullptr;
 	if ((home = getenv("HOME")) != nullptr)
