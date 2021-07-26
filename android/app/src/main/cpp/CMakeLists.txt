@@ -7,6 +7,8 @@ add_library( exult-android-wrapper
              exult_android_main.cc
              android_log_streambuf.cc )
 
+add_subdirectory("dependencies")
+
 find_library( log-lib log )
 
 target_link_libraries( exult-android-wrapper
