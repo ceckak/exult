@@ -6,14 +6,154 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/sample_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="1dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+          <LinearLayout
+              android:id="@+id/launchLayout"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:orientation="vertical">
+            <ImageView
+                android:id="@+id/exultImageView"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
+                android:src="@drawable/exult_logo_nice" />
+            <Button
+		android:id="@+id/launchExultButton"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:onClick="launchExult"
+		android:text="Launch Exult" />
+	  </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/gamesLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+		xmlns:tools="http://schemas.android.com/tools"
+		tools:ignore="DuplicateIds">
+
+                <CheckBox
+                    android:id="@+id/blackGateCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="The Black Gate"
+		    android:onClick="onGameCheckboxClicked">
+		  <tag
+                        android:id="@+id/gamename"
+                        android:value="blackgate" />
+		  <tag
+                        android:id="@+id/crc32"
+                        android:value="0x0" />
+		</CheckBox>
+
+                <CheckBox
+                    android:id="@+id/forgeOfVirtueCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="The Black Gate + Forge of Virtue"
+		    android:onClick="onGameCheckboxClicked">
+		  <tag
+                        android:id="@+id/gamename"
+                        android:value="forgeofvirtue" />
+		  <tag
+                        android:id="@+id/crc32"
+                        android:value="0x33EC5F67" />
+		</CheckBox>
+
+                <CheckBox
+                    android:id="@+id/serpentIsleCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="The Serpent Isle"
+		    android:onClick="onGameCheckboxClicked">
+		  <tag
+                        android:id="@+id/gamename"
+                        android:value="serpentisle" />
+		  <tag
+                        android:id="@+id/crc32"
+                        android:value="0" />
+		</CheckBox>
+
+                <CheckBox
+                    android:id="@+id/silverSeedCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="The Serpent Isle + Silver Seed"
+		    android:onClick="onGameCheckboxClicked">
+		  <tag
+                        android:id="@+id/gamename"
+                        android:value="silverseed" />
+		  <tag
+                        android:id="@+id/crc32"
+                        android:value="0xB274BD4D" />
+		</CheckBox>
+
+                <CheckBox
+                    android:id="@+id/audioPackCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Zipped all-in-one audio pack"
+		    android:onClick="onAudioPackCheckboxClicked">
+		</CheckBox>
+
+                <CheckBox
+                    android:id="@+id/keyringCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Marzo's Black Gate Keyring (requires FoV)"
+		    android:onClick="onModCheckboxClicked">
+		  <tag
+                        android:id="@+id/modname"
+                        android:value="keyring" />
+		  <tag
+                        android:id="@+id/modgame"
+                        android:value="forgeofvirtue" />
+		</CheckBox>
+
+                <CheckBox
+                    android:id="@+id/sifixesCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Marzo's Serpent Isle Fixes (requires SS)"
+		    android:onClick="onModCheckboxClicked">
+		  <tag
+                        android:id="@+id/modname"
+                        android:value="sifixes" />
+		  <tag
+                        android:id="@+id/modgame"
+                        android:value="silverseed" />
+		</CheckBox>
+
+                <CheckBox
+                    android:id="@+id/sfislandCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SourceForge Island (requires FoV)"
+		    android:onClick="onModCheckboxClicked">
+		  <tag
+                        android:id="@+id/modname"
+                        android:value="islefaq" />
+		  <tag
+                        android:id="@+id/modgame"
+                        android:value="forgeofvirtue" />
+		</CheckBox>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
