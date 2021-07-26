@@ -102,6 +102,8 @@ using namespace Pentagram;
 
 #ifdef __IPHONEOS__
 #  include "ios_utils.h"
+#elif defined(ANDROID)
+#  include "TouchUI_Android.h"
 #endif
 
 using std::atof;
@@ -558,6 +560,8 @@ int exult_main(const char *runpath) {
 
 #ifdef __IPHONEOS__
 	touchui = new TouchUI_iOS();
+#elif defined(ANDROID)
+	touchui = new TouchUI_Android();
 #endif
 	Init();             // Create main window.
 
