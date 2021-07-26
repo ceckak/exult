@@ -1042,6 +1042,69 @@ else
 	AC_MSG_RESULT(no)
 fi
 
+# Build Android APK?
+# Note: version numbers checked in this section are known-good baselines; haven't tested extensively to find minimums
+AM_CONDITIONAL(ANDROID_APK, false)
+AC_ARG_ENABLE(android-apk, AS_HELP_STRING([--enable-android-apk], [Build an Android APK @<:@default no@:>@]),,enable_android_apk=no)
+AC_MSG_CHECKING([whether to build an Android APK])
+if test x$enable_android_apk = xyes; then
+	AC_MSG_RESULT(yes)
+
+	# Needed to stage the sources in an out-of-tree build directory
+	AC_PROG_MKDIR_P
+	AC_PROG_LN_S
+
+	# Check for gradle
+	AC_CHECK_PROGS(GRADLE, gradle)
+	if test -z "$GRADLE"; then
+		AC_MSG_RESULT([no, not building Android APK])
+	else
+	       AM_CONDITIONAL(ANDROID_APK, true)
+	fi
+
+	# Checking against a known-good baseline gradle version
+	AC_MSG_CHECKING([gradle version])
+	gradle_version=`$GRADLE --version | grep Gradle | awk '{print $2;}' | awk -F. '{ print 0$1 * 10000 + 0$2*100 + 0$3;}'`
+	if test "$gradle_version" -ge 60802; then
+	   AC_MSG_RESULT([found >= 6.8.2])
+	else
+	   AC_MSG_ERROR([found < 6.8.2])
+	fi
+	
+
+	# Use sdkmanager to check Android SDK version.
+	AC_CHECK_PROGS(SDKMANAGER, sdkmanager) 
+
+	# Ghecking against a known-good baseline SDK version
+	AC_MSG_CHECKING([Android SDK version])
+	android_sdk_version=`$SDKMANAGER --version|head -n1|awk -F. '{ print 0$1 * 10000 + 0$2*100 + 0$3;}'`
+	if test "$android_sdk_version" -ge 260101; then
+	   AC_MSG_RESULT([found >= 26.1.1])
+	else
+	   AC_MSG_ERROR([found < 26.1.1])
+	fi
+
+	# Checking against known-good baseline CMake version
+	AC_MSG_CHECKING([Android CMake version])
+	android_cmake_version=`$SDKMANAGER --list 2>/dev/null | sed '/Available Packages/q'|grep cmake| awk -F\| '{print $2;}'|awk -F. '{print 0$1 * 10000 + 0$2*100 + 0$3;}'|sort -n|tail -n1`
+	if test "$android_cmake_version" -ge 31002; then
+	   AC_MSG_RESULT([found >= 3.10.2])
+	else
+	   AC_MSG_ERROR([found < 3.10.2])
+	fi
+
+	# Checking against known-good baseline NDK version
+	AC_MSG_CHECKING([Android NDK version])
+	android_ndk_version=`$SDKMANAGER --list 2>/dev/null | sed '/Available Packages/q'|grep ndk| awk -F\| '{print $2;}'|awk -F. '{print 0$1 * 100 + 0$2;}'|sort -n|tail -n1`
+	if test "$android_ndk_version" -ge 2101; then
+	   AC_MSG_RESULT([found >= 21.1])
+	else
+	   AC_MSG_ERROR([found < 21.1])
+	fi
+else
+	AC_MSG_RESULT(no)
+fi
+
 # ----------------------------------------------------------------
 # If we are cross-compiling, look for expack and head2data in PATH
 # ----------------------------------------------------------------
@@ -1099,6 +1162,7 @@ exult.spec
 Info.plist
 macosx/exult_studio_info.plist
 Makefile
+android/Makefile
 audio/Makefile
 audio/midi_drivers/Makefile
 audio/midi_drivers/timidity/Makefile
@@ -1165,6 +1229,12 @@ echo Build HQ3X scaler.......... : $enable_hq3x
 echo Build HQ4X scaler.......... : $enable_hq4x
 fi
 echo Build NxBR scalers......... : $enable_nxbr
+echo
+echo Build Android APK.......... : $enable_android_apk
+if test x$enable_android_apk = xyes; then
+echo Android SDK Version........ : `$SDKMANAGER --version|head -n1`
+echo Android NDK Version........ : `$SDKMANAGER --list 2>/dev/null|sed '/Available Packages/q'|grep ndk|awk -F\| '{print $2;}'`
+fi
 
 if test x$ARCH = xmacosx; then
 	if test x$enable_static_libs != xno; then
