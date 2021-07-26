@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 #include "ucfunc.h"
 
@@ -54,7 +55,7 @@ public:
 	}
 
 	bool fail() const {
-		return _file.fail();
+		return _file->fail();
 	}
 
 	const std::map<unsigned int, UCFuncSet> &funcmap() {
@@ -71,13 +72,13 @@ private:
 
 	void file_open(const std::string &filename);
 	void file_seek_start() {
-		_file.seekg(0, std::ios::beg);
+		_file->seekg(0, std::ios::beg);
 	}
 	void file_seek_end() {
-		_file.seekg(0, std::ios::end);
+		_file->seekg(0, std::ios::end);
 	}
 
-	std::ifstream _file;
+       std::unique_ptr<std::istream> _file;
 
 	std::string _output_redirect;
 	std::string _input_usecode_file;

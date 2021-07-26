@@ -288,9 +288,9 @@ public:
 	static std::map<unsigned int, std::string> FlagMap;
 };
 
-void readbin_U7UCFunc(std::ifstream &f, UCFunc &ucf, const UCOptions &options,
+void readbin_U7UCFunc(std::istream &f, UCFunc &ucf, const UCOptions &options,
                       Usecode_symbol_table *symtbl);
-void readbin_U8UCFunc(std::ifstream &f, UCFunc &ucf);
+void readbin_U8UCFunc(std::istream &f, UCFunc &ucf);
 
 std::ostream &tab_indent(const unsigned int indent, std::ostream &o);
 #endif

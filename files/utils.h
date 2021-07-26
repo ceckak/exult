@@ -27,6 +27,7 @@
 #include <cstring>
 #include <iosfwd>
 #include <limits>
+#include <memory>
 #include <dirent.h>
 
 #include "common_types.h"
@@ -401,19 +402,17 @@ inline size_t get_file_size(std::istream& in) {
 	return len;
 }
 
-bool U7open(
-    std::ifstream &in,          // Input stream to open.
-    const char *fname,          // May be converted to upper-case.
-    bool is_text = false            // Should the file be opened in text mode
-);
-bool U7open(
-    std::ofstream &out,         // Output stream to open.
+std::unique_ptr<std::istream> U7open_in(
     const char *fname,          // May be converted to upper-case.
     bool is_text = false            // Should the file be opened in text mode
 );
 
-bool U7open_static(
-    std::ifstream &in,      // Input stream to open.
+std::unique_ptr<std::ostream> U7open_out(
+    const char *fname,          // May be converted to upper-case.
+    bool is_text = false            // Should the file be opened in text mode
+);
+
+std::unique_ptr<std::istream> U7open_static(
     const char *fname,      // May be converted to upper-case.
     bool is_text            // Should file be opened in text mode
 );

@@ -274,8 +274,7 @@ static void switch_slashes(
  *  Output: 0 if couldn't open.
  */
 
-bool U7open(
-    std::ifstream &in,          // Input stream to open.
+std::unique_ptr<std::istream> U7open_in(
     const char *fname,          // May be converted to upper-case.
     bool is_text                // Should the file be opened in text mode
 ) {
@@ -283,24 +282,25 @@ bool U7open(
 	if (!is_text) mode |= std::ios::binary;
 	string name = get_system_path(fname);
 	int uppercasecount = 0;
+	auto in = std::make_unique<std::ifstream>();
 	do {
 		// We first "clear" the stream object. This is done to prevent
 		// problems when re-using stream objects
-		in.clear();
+		in->clear();
 		try {
 			//std::cout << "trying: " << name << std::endl;
-			in.open(name.c_str(), mode);        // Try to open
+			in->open(name.c_str(), mode);        // Try to open
 		} catch (std::exception &)
 		{}
-		if (in.good() && !in.fail()) {
+		if (in->good() && !in->fail()) {
 			//std::cout << "got it!" << std::endl;
-			return true; // found it!
+			return in; // found it!
 		}
 	} while (base_to_uppercase(name, ++uppercasecount));
 
 	// file not found.
 	throw file_open_exception(get_system_path(fname));
-	return false;
+	return nullptr;
 }
 
 /*
@@ -311,8 +311,7 @@ bool U7open(
  *  Output: 0 if couldn't open.
  */
 
-bool U7open(
-    std::ofstream &out,         // Output stream to open.
+std::unique_ptr<std::ostream> U7open_out(
     const char *fname,          // May be converted to upper-case.
     bool is_text                // Should the file be opened in text mode
 ) {
@@ -320,21 +319,19 @@ bool U7open(
 	if (!is_text) mode |= std::ios::binary;
 	string name = get_system_path(fname);
 
-	// We first "clear" the stream object. This is done to prevent
-	// problems when re-using stream objects
-	out.clear();
+        auto out = std::make_unique<std::ofstream>();
 
 	int uppercasecount = 0;
 	do {
-		out.open(name.c_str(), mode);       // Try to open
-		if (out.good())
-			return true; // found it!
-		out.clear();    // Forget ye not
+		out->open(name.c_str(), mode);       // Try to open
+		if (out->good())
+			return out; // found it!
+		out->clear();    // Forget ye not
 	} while (base_to_uppercase(name, ++uppercasecount));
 
 	// file not found.
 	throw file_open_exception(get_system_path(fname));
-	return false;
+	return nullptr;
 }
 
 DIR *U7opendir(
@@ -388,8 +385,7 @@ void U7remove(
  *  Output: 0 if couldn't open. We do NOT throw exceptions.
  */
 
-bool U7open_static(
-    std::ifstream &in,      // Input stream to open.
+std::unique_ptr<std::istream> U7open_static(
     const char *fname,      // May be converted to upper-case.
     bool is_text            // Should file be opened in text mode
 ) {
@@ -397,17 +393,19 @@ bool U7open_static(
 
 	name = string("<PATCH>/") + fname;
 	try {
-		if (U7open(in, name.c_str(), is_text))
-			return true;
+		auto in = U7open_in(name.c_str(), is_text);
+		if (in)
+			return in;
 	} catch (std::exception &)
 	{}
 	name = string("<STATIC>/") + fname;
 	try {
-		if (U7open(in, name.c_str(), is_text))
-			return true;
+		auto in = U7open_in(name.c_str(), is_text);
+		if (in)
+			return in;
 	} catch (std::exception &)
 	{}
-	return false;
+	return nullptr;
 }
 
 /*
@@ -830,22 +828,24 @@ void U7copy(
     const char *src,
     const char *dest
 ) {
-	std::ifstream in;
-	std::ofstream out;
+	std::unique_ptr<std::istream> in;
+	std::unique_ptr<std::ostream> out;
 	try {
-		U7open(in, src);
-		U7open(out, dest);
+		in = U7open_in(src);
+		out = U7open_out(dest);
 	} catch (exult_exception &e) {
-		in.close();
-		out.close();
 		throw;
 	}
-	out << in.rdbuf();
-	out.flush();
-	bool inok = in.good();
-	bool outok = out.good();
-	in.close();
-	out.close();
+	if (!in) {
+		throw file_open_exception(src);
+	}
+	if (!out) {
+		throw file_open_exception(dest);
+	}
+	*out << in->rdbuf();
+	out->flush();
+	bool inok = in->good();
+	bool outok = out->good();
 	if (!inok)
 		throw file_read_exception(src);
 	if (!outok)
