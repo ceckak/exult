@@ -35,3 +35,4 @@ ProcessorCount(NCPU)
 
 # Pull in dependencies
 include(ExternalProject)
+add_subdirectory("ogg")
