@@ -30,6 +30,12 @@ libu7file_la_SOURCES =	\
 	U7fileman.h	\
 	U7obj.cc	\
 	U7obj.h	\
+	sdlrwopsstreambuf.cc \
+	sdlrwopsstreambuf.h \
+	sdlrwopsistream.cc \
+	sdlrwopsistream.h \
+	sdlrwopsostream.cc \
+	sdlrwopsostream.h \
 	utils.cc	\
 	utils.h		\
 	databuf.h	\
@@ -39,6 +45,8 @@ libu7file_la_SOURCES =	\
 	crc.h		\
 	msgfile.cc	\
 	msgfile.h
+
+libu7file_la_libadd = $(SDL_LIBS)
 
 EXTRA_DIST = 		\
 	module.mk	\

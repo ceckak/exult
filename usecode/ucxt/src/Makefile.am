@@ -15,9 +15,8 @@ ucxt_LDADD = \
 	../../../files/zip/libminizip.la \
 	../../../usecode/libusecode.la \
 	$(ZLIB_LIBS) \
+	$(SDL_LIBS) \
 	$(SYSLIBS)
-	
-
 
 if BUILD_TOOLS
 bin_PROGRAMS = ucxt

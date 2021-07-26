@@ -32,6 +32,7 @@ expack_SOURCES = \
 
 expack_LDADD = \
 	../files/libu7file.la \
+	$(SDL_LIBS) \
 	$(SYSLIBS)
 
 ipack_SOURCES = \
@@ -41,6 +42,7 @@ ipack_LDADD = \
 	../files/libu7file.la \
 	../shapes/libshapes.la \
 	../imagewin/libimagewin.la \
+	$(SDL_LIBS) \
 	-lpng -lz $(SYSLIBS)
 
 gnome_shp_thumbnailer_SOURCES = \
@@ -87,12 +89,14 @@ textpack_SOURCES = textpack.cc
 
 textpack_LDADD = \
 	../files/libu7file.la \
+	$(SDL_LIBS) \
 	$(SYSLIBS)
 
 u7voice2syx_SOURCES = u7voice2syx.cc
 
 u7voice2syx_LDADD = \
 	../files/libu7file.la \
+	$(SDL_LIBS) \
 	$(SYSLIBS)
 
 cmanip_SOURCES = \
@@ -101,6 +105,7 @@ cmanip_SOURCES = \
 cmanip_LDADD = \
 	../conf/libconf.la \
 	../files/libu7file.la \
+	$(SDL_LIBS) \
 	$(SYSLIBS)
 
 if BUILD_GTHUMB

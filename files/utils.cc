@@ -52,6 +52,9 @@
 #include "fnames.h"
 #include "ignore_unused_variable_warning.h"
 
+#include "sdlrwopsistream.h"
+#include "sdlrwopsostream.h"
+
 #if defined(MACOSX) || defined(__IPHONEOS__)
 #  include <CoreFoundation/CoreFoundation.h>
 #  include <sys/param.h> // for MAXPATHLEN
@@ -68,7 +71,7 @@ static bool base_to_uppercase(string &str, int count);
 
 
 // Wrap a few functions
-inline int stat(const std::string &file_name, struct stat *buf) {
+static inline int stat(const std::string &file_name, struct stat *buf) {
 	return stat(file_name.c_str(), buf);
 }
 
@@ -282,14 +285,10 @@ std::unique_ptr<std::istream> U7open_in(
 	if (!is_text) mode |= std::ios::binary;
 	string name = get_system_path(fname);
 	int uppercasecount = 0;
-	auto in = std::make_unique<std::ifstream>();
+	std::unique_ptr<std::istream> in;
 	do {
-		// We first "clear" the stream object. This is done to prevent
-		// problems when re-using stream objects
-		in->clear();
 		try {
-			//std::cout << "trying: " << name << std::endl;
-			in->open(name.c_str(), mode);        // Try to open
+			in = std::make_unique<SdlRwopsIstream>(name.c_str(), mode);
 		} catch (std::exception &)
 		{}
 		if (in->good() && !in->fail()) {
@@ -319,14 +318,11 @@ std::unique_ptr<std::ostream> U7open_out(
 	if (!is_text) mode |= std::ios::binary;
 	string name = get_system_path(fname);
 
-        auto out = std::make_unique<std::ofstream>();
-
 	int uppercasecount = 0;
 	do {
-		out->open(name.c_str(), mode);       // Try to open
+                auto out = std::make_unique<SdlRwopsOstream>(name.c_str(), mode);
 		if (out->good())
 			return out; // found it!
-		out->clear();    // Forget ye not
 	} while (base_to_uppercase(name, ++uppercasecount));
 
 	// file not found.
@@ -416,13 +412,17 @@ bool U7exists(
     const char *fname         // May be converted to upper-case.
 ) {
 	string name = get_system_path(fname);
-	struct stat sbuf;
 
 	int uppercasecount = 0;
 	do {
-		bool exists = (stat(name, &sbuf) == 0);
-		if (exists)
-			return true; // found it!
+            SdlRwopsIstream in;
+            try {
+                in.open(name.c_str());
+            } catch (std::exception &)
+            {}
+            if (in.good() && !in.fail()) {
+                return true; // found it!
+            }
 	} while (base_to_uppercase(name, ++uppercasecount));
 
 	// file not found
