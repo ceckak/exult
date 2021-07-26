@@ -29,6 +29,24 @@ using namespace std;
 
 #include "unzip.h"
 
+// Some platforms have non-standard filesystem organizations which can cause a
+// simple fopen() to fail. SDL's rwops functions take these platform specifics
+// into account.  Implementing this with macros to minimize changes elsewhere in
+// this file.
+#define USE_SDL_RWOPS
+#ifdef USE_SDL_RWOPS
+#include <SDL.h>
+#define FILE struct SDL_RWops
+#define fread(ptr, size, nitems, stream) \
+ 	SDL_RWread(stream, ptr, size, nitems)
+#define ferror(stream) 0
+#define fseek(stream, offset, whence) \
+ 	(SDL_RWseek(stream, offset, whence) == -1 ? -1 : 0)
+#define ftell  SDL_RWtell
+#define fopen  SDL_RWFromFile
+#define fclose SDL_RWclose
+#endif
+
 #if !defined(unix) && !defined(CASESENSITIVITYDEFAULT_YES) && \
                       !defined(CASESENSITIVITYDEFAULT_NO)
 #define CASESENSITIVITYDEFAULT_NO
