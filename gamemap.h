@@ -58,7 +58,7 @@ class Game_map {
 	int num;            // Map #.  Index in gwin->maps.
 	// Flat chunk areas:
 	static std::vector<Chunk_terrain *> *chunk_terrains;
-	static std::ifstream *chunks;   // "u7chunks" file.
+	static std::unique_ptr<std::istream> chunks;   // "u7chunks" file.
 	static bool v2_chunks;      // True if 3 bytes/entry.
 	static bool read_all_terrain;   // True if we've read them all.
 	static bool chunk_terrains_modified;
