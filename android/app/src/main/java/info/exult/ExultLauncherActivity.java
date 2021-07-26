@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -79,6 +80,16 @@ public class ExultLauncherActivity extends Activity {
             CheckBox modCheckBox = (CheckBox) viewInGamesLayout;
             modCheckBox.setChecked(true);
         }
+
+        View dpadImageView = (View) findViewById(R.id.dpadImageView);
+        dpadImageView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    Log.d("DpadService", "ACTION_DOWN, x=" + event.getRawX() + ", y=" + event.getRawY());
+                    return true;
+                }
+            });
+        
     }
 
     void installGameContent(Uri uri, ExultContent gameContent) {

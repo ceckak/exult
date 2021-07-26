@@ -6,6 +6,12 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+  <RelativeLayout
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent"
+      android:id="@+id/root_view">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -153,5 +159,16 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <ImageView
+	android:id="@+id/dpadImageView"
+	android:layout_width="100dp"
+	android:layout_height="100dp"
+	android:src="@drawable/dpad_center"
+	android:layout_alignParentRight="true"
+	android:layout_alignParentBottom="true"
+	android:visibility="gone" />
+
+  </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
