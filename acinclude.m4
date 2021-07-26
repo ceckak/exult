@@ -90,6 +90,8 @@ AC_DEFUN([EXULT_CHECK_SDL],[
   if test "x$exult_sdlok" = xyes; then
     LIBS="$LIBS $SDL_LIBS"
 
+    dnl as normal executable...
+
     AC_LINK_IFELSE([AC_LANG_SOURCE([[
     #include "SDL.h"
 
@@ -97,13 +99,40 @@ AC_DEFUN([EXULT_CHECK_SDL],[
       SDL_Init(0);
       return 0;
     }
-    ]])],sdllinkok=yes,sdllinkok=no)
+    ]])],sdllinkok=exe,sdllinkok=no)
+
+    if test x$sdllinkok = xno; then
+
+      dnl as library with SDL_main...
+
+      AC_LINK_IFELSE([AC_LANG_SOURCE([[
+      #include "SDL.h"
+
+      int main(int argc, char* argv[]) {
+        SDL_Init(0);
+        return 0;
+      }
+      #undef main
+      int main(int argc, char * argv[]) {
+        return SDL_main(argc, argv);
+      }
+      ]])],sdllinkok=lib,sdllinkok=no)      
+
+      AM_CONDITIONAL(SDL_MAIN_NEEDED, true)
+    else
+      AM_CONDITIONAL(SDL_MAIN_NEEDED, false)
+    fi
+
     if test x$sdllinkok = xno; then
       exult_sdlok=no
     fi
   fi
 
-  AC_MSG_RESULT($exult_sdlok)
+  if test x$sdllinkok = xlib; then
+    AC_MSG_RESULT($exult_sdlok (SDL_MAIN_NEEDED))
+  else
+    AC_MSG_RESULT($exult_sdlok)
+  fi
 
   LDFLAGS="$exult_backupldflags"
   CPPFLAGS="$exult_backupcppflags"
