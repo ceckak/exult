@@ -25,6 +25,7 @@ private:
 	jmethodID               m_showGameControlsMethod;
 	jmethodID               m_hideGameControlsMethod;
 	SDL_GameController*     m_gameController;
+	jmethodID               m_promptForNameMethod;
 };
 
 #endif

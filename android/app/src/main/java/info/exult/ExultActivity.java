@@ -1,9 +1,14 @@
 package info.exult;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.MotionEvent;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -37,7 +42,6 @@ public class ExultActivity extends SDLActivity
                         m_dpadImageView.setVisibility(View.GONE);
                         return;
                     }
-                    Log.d("ExultActivity", "showGameControls: " + dpadLocation);
                     m_dpadImageView.setLayoutParams(layoutParams);
                     m_dpadImageView.setVisibility(View.VISIBLE);
                 }
@@ -48,7 +52,6 @@ public class ExultActivity extends SDLActivity
         runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d("ExultActivity", "hideGameControls");
                     m_dpadImageView.setVisibility(View.GONE);
                 }
             });        
@@ -59,6 +62,35 @@ public class ExultActivity extends SDLActivity
     private float m_dpadImageViewActionDownY;
 
     public native void setVirtualJoystick(float x, float y);
+    public native void setName(String name);
+
+    public void promptForName(String name) {
+        runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Context context = getContext();
+                    AlertDialog.Builder nameBuilder = new AlertDialog.Builder(context);
+                    nameBuilder.setTitle("Name");
+                    EditText nameEditText = new EditText(context);
+                    nameEditText.setInputType(InputType.TYPE_CLASS_TEXT);
+                    nameBuilder.setView(nameEditText);
+                    nameBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() { 
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                setName(nameEditText.getText().toString());
+                            }
+                        });
+                    nameBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                    nameBuilder.show();
+                }
+            });        
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
