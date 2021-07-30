@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION @CMAKE_MINIMUM_REQUIRED_VERSION@)
+project(@DEPENDENCY@)
+
+include(ExternalProject)
+
+ExternalProject_Add(
+  @DEPENDENCY@
+  SOURCE_DIR        @EXULT_SOURCE_DIR@
+  INSTALL_DIR       @DEPENDENCIES_INSTALL_DIR@
+  CONFIGURE_COMMAND <SOURCE_DIR>/autogen.sh
+  COMMAND           . @ENVFILE@ && <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --host=@ANDROID_LLVM_TRIPLE@ --enable-shared --disable-data --disable-tools
+  BUILD_COMMAND     make -j@NCPU@
+)
