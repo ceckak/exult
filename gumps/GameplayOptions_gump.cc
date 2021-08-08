@@ -62,7 +62,7 @@ static string framestring(int fr) {
 	return buf;
 }
 
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 static const char *pathfind_texts[3] = {"no", "single", "double"};
 #endif
 
@@ -97,7 +97,7 @@ void GameplayOptions_gump::build_buttons() {
 	                                   Game::get_game_type() == EXULT_DEVEL_GAME))
 		buttons[id_paperdolls] = std::make_unique<GameplayEnabledToggle>(this, &GameplayOptions_gump::toggle_paperdolls,
 		        paperdolls, colx[3], rowy[12], 59);
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 	buttons[id_fastmouse] = std::make_unique<GameplayEnabledToggle>(this, &GameplayOptions_gump::toggle_fastmouse,
 	        fastmouse, colx[3], rowy[3], 59);
 	buttons[id_mouse3rd] = std::make_unique<GameplayEnabledToggle>(this, &GameplayOptions_gump::toggle_mouse3rd,
@@ -105,7 +105,7 @@ void GameplayOptions_gump::build_buttons() {
 #endif
 	buttons[id_doubleclick] = std::make_unique<GameplayEnabledToggle>(this, &GameplayOptions_gump::toggle_doubleclick,
 	        doubleclick, colx[3], rowy[5], 59);
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 	buttons[id_rightclick_close] = std::make_unique<GameplayEnabledToggle>(this, &GameplayOptions_gump::toggle_rightclick_close,
 	        rightclick_close, colx[3], rowy[6], 59);
 
@@ -215,7 +215,7 @@ void GameplayOptions_gump::save_settings() {
 		            paperdolls ? "yes" : "no", false);
 	}
 
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 	gwin->set_allow_right_pathfind(right_pathfind);
 	config->set("config/gameplay/allow_right_pathfind", pathfind_texts[right_pathfind], false);
 #endif
@@ -243,12 +243,12 @@ void GameplayOptions_gump::paint() {
 	font->paint_text(iwin->get_ib8(), "Text Background:", x + colx[0], y + rowy[1] + 1);
 	if (buttons[id_paperdolls])
 		font->paint_text(iwin->get_ib8(), "Paperdolls:", x + colx[0], y + rowy[12] + 1);
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 	font->paint_text(iwin->get_ib8(), "Fullscreen Fast Mouse:", x + colx[0], y + rowy[3] + 1);
 	font->paint_text(iwin->get_ib8(), "Use Middle Mouse Button:", x + colx[0], y + rowy[4] + 1);
 #endif
 	font->paint_text(iwin->get_ib8(), "Doubleclick closes Gumps:", x + colx[0], y + rowy[5] + 1);
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 	font->paint_text(iwin->get_ib8(), "Right click closes Gumps:", x + colx[0], y + rowy[6] + 1);
 	font->paint_text(iwin->get_ib8(), "Right click Pathfinds:", x + colx[0], y + rowy[7] + 1);
 #endif
