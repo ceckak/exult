@@ -47,7 +47,7 @@ private:
 	    id_first = 0,
 	    id_ok = id_first,
 	    id_cancel,
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 	    id_scroll_mouse,
 #endif
 	    id_menu_intro,

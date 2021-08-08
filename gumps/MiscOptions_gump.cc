@@ -67,7 +67,7 @@ void MiscOptions_gump::build_buttons() {
 	int y_index = 0;
 	int small_size = 44;
 	int large_size = 85;
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 	buttons[id_scroll_mouse] = std::make_unique<MiscTextToggle>(this, &MiscOptions_gump::toggle_scroll_mouse,
 	        yesNo, scroll_mouse, colx[5], rowy[y_index], small_size);
 #endif
@@ -152,7 +152,7 @@ MiscOptions_gump::MiscOptions_gump()
 }
 
 void MiscOptions_gump::save_settings() {
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 	config->set("config/gameplay/scroll_with_mouse",
 	            scroll_mouse ? "yes" : "no", false);
 	gwin->set_mouse_with_scroll(scroll_mouse);
@@ -207,7 +207,7 @@ void MiscOptions_gump::paint() {
 	Font *font = fontManager.get_font("SMALL_BLACK_FONT");
 	Image_window8 *iwin = gwin->get_win();
 	int y_index = 0;
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 	font->paint_text(iwin->get_ib8(), "Scroll game view with mouse:", x + colx[0], y + rowy[y_index] + 1);
 #endif
 	font->paint_text(iwin->get_ib8(), "Skip intro:", x + colx[0], y + rowy[++y_index] + 1);
