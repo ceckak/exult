@@ -1045,10 +1045,10 @@ fi
 # Build Android APK?
 # Note: version numbers checked in this section are known-good baselines; haven't tested extensively to find minimums
 AM_CONDITIONAL(ANDROID_APK, false)
-AC_ARG_ENABLE(android-apk, AS_HELP_STRING([--enable-android-apk], [Build an Android APK @<:@default no@:>@]),,enable_android_apk=no)
+AC_ARG_ENABLE(android-apk, AS_HELP_STRING([--enable-android-apk=debug|release], [Build an Android APK @<:@default no@:>@]),enable_android_apk="$enableval",enable_android_apk=no)
 AC_MSG_CHECKING([whether to build an Android APK])
-if test x$enable_android_apk = xyes; then
-	AC_MSG_RESULT(yes)
+if test x$enable_android_apk != xno; then
+	AC_MSG_RESULT($enable_android_apk)
 
 	# Needed to stage the sources in an out-of-tree build directory
 	AC_PROG_MKDIR_P
@@ -1060,6 +1060,7 @@ if test x$enable_android_apk = xyes; then
 		AC_MSG_RESULT([no, not building Android APK])
 	else
 	       AM_CONDITIONAL(ANDROID_APK, true)
+	       AC_SUBST(APK_BUILD_TYPE, $enable_android_apk)
 	fi
 
 	# Checking against a known-good baseline gradle version
