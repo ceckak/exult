@@ -19,6 +19,7 @@ confregress_SOURCES =	\
 confregress_LDADD =	\
 	libconf.la	\
 	../files/libu7file.la	\
+	$(SDL_LIBS) \
 	$(SYSLIBS)
 
 EXTRA_DIST = 		\
