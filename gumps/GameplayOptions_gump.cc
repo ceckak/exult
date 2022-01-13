@@ -235,7 +235,7 @@ void GameplayOptions_gump::paint() {
 	font->paint_text(iwin->get_ib8(), "Text Background:", x + colx[0], y + rowy[1] + 1);
 	if (buttons[id_paperdolls])
 		font->paint_text(iwin->get_ib8(), "Paperdolls:", x + colx[0], y + rowy[12] + 1);
-#ifndef __IPHONEOS__
+#if !defined(__IPHONEOS__) && !defined(ANDROID)
 	font->paint_text(iwin->get_ib8(), "Fullscreen Fast Mouse:", x + colx[0], y + rowy[3] + 1);
 	font->paint_text(iwin->get_ib8(), "Use Middle Mouse Button:", x + colx[0], y + rowy[4] + 1);
 #endif
