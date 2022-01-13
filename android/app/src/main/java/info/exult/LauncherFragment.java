@@ -68,6 +68,7 @@ public class LauncherFragment extends Fragment implements View.OnClickListener {
 
   private void launchExult() {
       Intent launchExultIntent = new Intent(getActivity(), ExultActivity.class);
+      ExultActivity.consoleLog = "";
       startActivity(launchExultIntent);
   }
 }
