@@ -35,6 +35,15 @@
           android:text="Automatically launch Exult when opening app"/>
     </LinearLayout>
 
+    <ImageView
+	android:id="@+id/dpadImageView"
+	android:layout_width="100dp"
+	android:layout_height="100dp"
+	android:src="@drawable/dpad_center"
+	android:layout_alignParentRight="true"
+	android:layout_alignParentBottom="true"
+	android:visibility="gone" />
+
   </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
