@@ -771,20 +771,19 @@ void KeyBinder::ParseLine(char *line) {
 }
 
 void KeyBinder::LoadFromFileInternal(const char *filename) {
-	ifstream keyfile;
-
-	U7open(keyfile, filename, true);
+	auto keyfile = U7open_in(filename, true);
+        if (!keyfile)
+                return;
 	char temp[1024]; // 1024 should be long enough
-	while (!keyfile.eof()) {
-		keyfile.getline(temp, 1024);
-		if (keyfile.gcount() >= 1023) {
+	while (!keyfile->eof()) {
+		keyfile->getline(temp, 1024);
+		if (keyfile->gcount() >= 1023) {
 			cerr << "Keybinder: parse error: line too long. Skipping rest of file."
 			     << endl;
 			return;
 		}
 		ParseLine(temp);
 	}
-	keyfile.close();
 }
 
 void KeyBinder::LoadFromFile(const char *filename) {

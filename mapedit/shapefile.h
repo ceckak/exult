@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "ignore_unused_variable_warning.h"
 
-#include <fstream>
+#include <istream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -82,7 +82,7 @@ public:
 	// Call for main browser.
 	virtual Object_browser *get_browser(Shape_file_info *vgafile,
 	                                    unsigned char *palbuf);
-	virtual std::ifstream *get_file() {
+	virtual std::istream *get_file() {
 		return nullptr;
 	}
 	virtual Flex *get_flex() {
@@ -124,16 +124,16 @@ public:
  *  Chunks file:
  */
 class Chunks_file_info : public Shape_file_info {
-	std::ifstream *file;        // For 'chunks'; ifile is nullptr.
+	std::unique_ptr<std::istream> file;        // For 'chunks'; ifile is nullptr.
 public:
 	// We will own file.
 	Chunks_file_info(const char *bnm, const char *pnm,
-	                 std::ifstream *f, Shape_group_file *g)
-		: Shape_file_info(bnm, pnm, g), file(f)
+			 std::unique_ptr<std::istream> f, Shape_group_file *g)
+		: Shape_file_info(bnm, pnm, g), file(std::move(f))
 	{  }
 	~Chunks_file_info() override;
-	std::ifstream *get_file() override {
-		return file;
+	std::istream *get_file() override {
+		return file.get();
 	}
 	Object_browser *create_browser(Shape_file_info *vgafile,
 	                               unsigned char *palbuf,

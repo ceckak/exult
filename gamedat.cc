@@ -150,13 +150,13 @@ void Game_window::restore_flex_files(
 			}
 			continue;
 		}
-		ofstream out;
-		U7open(out, fname);
-		out.write(buf, len);    // Then write it out.
+		auto out = U7open_out(fname);
+		if (out)
+			out->write(buf, len);	 // Then write it out.
 		delete [] buf;
-		if (!out.good())
+		if (!out || !out->good())
 			abort("Error writing '%s'.", fname);
-		out.close();
+
 		cycle_load_palette();
 	}
 	delete [] finfo;
@@ -410,17 +410,17 @@ void Game_window::read_save_names(
 		char fname[50];     // Set up name.
 		snprintf(fname, 50, SAVENAME, static_cast<int>(i),
 		         GAME_BG ? "bg" : (GAME_SI ? "si" : "dev"));
-		ifstream in;
 		try {
-			U7open(in, fname);
-			char buf[0x50];     // It's at start of file.
-			memset(buf, 0, sizeof(buf));
-			in.read(buf, sizeof(buf) - 1);
-			if (in.good())      // Okay if file not there.
+			auto in = U7open_in(fname);
+			char buf[0x50];	    // It's at start of file.
+			if (in) {
+				memset(buf, 0, sizeof(buf));
+				in->read(buf, sizeof(buf) - 1);
+			}
+			if (in && in->good())	   // Okay if file not there.
 				save_names[i] = newstrdup(buf);
 			else
 				save_names[i] = newstrdup("");
-			in.close();
 		} catch (const file_exception & /*f*/) {
 			save_names[i] = newstrdup("");
 		}
@@ -518,9 +518,9 @@ void Game_window::write_saveinfo() {
 
 	{
 		// Current Exult version
-		ofstream out_stream;
-		U7open(out_stream, GEXULTVER);     // Open file; throws an exception - Don't care
-		getVersionInfo(out_stream);
+		auto out_stream = U7open_out(GEXULTVER);     // Open file; throws an exception - Don't care
+		if (out_stream)
+			getVersionInfo(*out_stream);
 	}
 
 	// Exult version that started this game
@@ -796,16 +796,16 @@ bool Game_window::Restore_level2(
 			}
 
 			// Then write it out.
-			ofstream out;
-			U7open(out, oname);
-			out.write(buf, size);
+			auto out = U7open_out(oname);
+			if (out)
+				out->write(buf, size);
 
 			delete [] buf;
-			if (!out.good()) {
+			if (!out || !out->good()) {
 				std::cerr << "out was bad" << std::endl;
 				return false;
 			}
-			out.close();
+
 			cycle_load_palette();
 		}
 	}
@@ -929,11 +929,10 @@ bool Game_window::restore_gamedat_zip(
 			abort("Error reading current from zip '%s'.", fname);
 
 		// now write it out.
-		ofstream out;
-		U7open(out, oname);
-		out.write(buf, len);
-		if (!out.good()) abort("Error writing to '%s'.", oname);
-		out.close();
+		auto out = U7open_out(oname);
+		if (out)
+			out->write(buf, len);
+		if (!out || !out->good()) abort("Error writing to '%s'.", oname);
 
 		// Close the file in the zip
 		if (unzCloseCurrentFile(unzipfile) != UNZ_OK)
@@ -1062,13 +1061,12 @@ bool Game_window::save_gamedat_zip(
 
 	// Name
 	{
-		ofstream out;
 		char title[0x50];
 		memset(title, 0, 0x50);
 		std::strncpy(title, savename, 0x50);
-		U7open(out, fname);
-		out.write(title, 0x50);
-		out.close();
+		auto out = U7open_out(fname);
+		if (out)
+			out->write(title, 0x50);
 	}
 
 	std::string filestr = get_system_path(fname);
