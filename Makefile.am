@@ -16,6 +16,10 @@ SUBDIRS =  files conf data shapes imagewin pathfinder \
 	gamemgr flic usecode tools audio gumps objs server \
 	mapedit desktop docs $(MODSDIR)
 
+if ANDROID_APK
+SUBDIRS += android
+endif
+
 bin_PROGRAMS = exult
 if SDL_MAIN_NEEDED
 exult_SOURCES = sdl_main.cc
