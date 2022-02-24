@@ -56,6 +56,7 @@ public class ExultLauncherActivity extends AppCompatActivity {
   public void launchExult() {
       m_launched = true;
       Intent launchExultIntent = new Intent(this, ExultActivity.class);
+      ExultActivity.consoleLog = "";
       startActivity(launchExultIntent);
   }
 

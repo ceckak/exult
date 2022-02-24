@@ -4,6 +4,12 @@ import org.libsdl.app.SDLActivity;
 
 public class ExultActivity extends SDLActivity
 {
+    public static String consoleLog;
+    public void writeToConsole(String message) {
+        if (message != null) {
+            consoleLog += message + "\n";
+        }
+    }
 
     /**
      * This method returns the name of the application entry point
