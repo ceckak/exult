@@ -62,6 +62,12 @@ libexult_la_SOURCES =	\
 	exultmenu.cc	\
 	exultmenu.h	\
 	exult_constants.h	\
+	files/sdlrwopsstreambuf.cc \
+	files/sdlrwopsstreambuf.h \
+	files/sdlrwopsistream.cc \
+	files/sdlrwopsistream.h \
+	files/sdlrwopsostream.cc \
+	files/sdlrwopsostream.h \
 	fnames.h	\
 	frameseq.h	\
 	game.cc		\
