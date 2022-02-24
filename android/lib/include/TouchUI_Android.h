@@ -17,6 +17,7 @@ public:
 
 	static TouchUI_Android* getInstance();
 	void                    setVirtualJoystick(Sint16 x, Sint16 y);
+        void                    sendEscapeKeypress();
 
 private:
 	static TouchUI_Android* m_instance;
@@ -24,6 +25,8 @@ private:
 	jobject                 m_exultActivityObject;
 	jmethodID               m_showGameControlsMethod;
 	jmethodID               m_hideGameControlsMethod;
+	jmethodID               m_showButtonControlsMethod;
+	jmethodID               m_hideButtonControlsMethod;
 	SDL_GameController*     m_gameController;
 	jmethodID               m_promptForNameMethod;
 };

@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.MotionEvent;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.view.Gravity;
 import android.widget.RelativeLayout;
 
 import org.libsdl.app.SDLActivity;
@@ -33,23 +35,24 @@ public class ExultActivity extends SDLActivity
         runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)m_dpadImageView.getLayoutParams();
-                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-                    layoutParams.removeRule(RelativeLayout.ALIGN_PARENT_TOP);
+                    RelativeLayout.LayoutParams dpadLayoutParams = (RelativeLayout.LayoutParams) m_dpadImageView.getLayoutParams();
+                    dpadLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                    dpadLayoutParams.removeRule(RelativeLayout.ALIGN_PARENT_TOP);
+
                     switch (dpadLocation) {
                     case "left":
-                        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                        layoutParams.removeRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                        dpadLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                        dpadLayoutParams.removeRule(RelativeLayout.ALIGN_PARENT_RIGHT);
                         break;
                     case "right":
-                        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-                        layoutParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                        dpadLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                        dpadLayoutParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
                         break;
                     default:
                         m_dpadImageView.setVisibility(View.GONE);
                         return;
                     }
-                    m_dpadImageView.setLayoutParams(layoutParams);
+                    m_dpadImageView.setLayoutParams(dpadLayoutParams);
                     m_dpadImageView.setVisibility(View.VISIBLE);
                 }
             });        
@@ -64,11 +67,50 @@ public class ExultActivity extends SDLActivity
             });        
     }
 
+    public void showButtonControls(String dpadLocation) {
+        runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    RelativeLayout.LayoutParams escLayoutParams = (RelativeLayout.LayoutParams) m_escTextView.getLayoutParams();
+                    escLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                    escLayoutParams.removeRule(RelativeLayout.ALIGN_PARENT_TOP);
+
+                    switch (dpadLocation) {
+                    case "left":
+                        escLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                        escLayoutParams.removeRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                        break;
+                    case "right":
+                        escLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                        escLayoutParams.removeRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                        break;
+                    default:
+                        m_escTextView.setVisibility(View.GONE);
+                        return;
+                    }
+                    m_escTextView.setLayoutParams(escLayoutParams);
+                    m_escTextView.setVisibility(View.VISIBLE);
+                }
+            });
+    }
+
+    public void hideButtonControls() {
+        runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    m_escTextView.setVisibility(View.GONE);
+                }
+            });
+    }
+
+    private TextView m_escTextView;
+
     private ImageView m_dpadImageView;
     private float m_dpadImageViewActionDownX;
     private float m_dpadImageViewActionDownY;
 
     public native void setVirtualJoystick(float x, float y);
+    public native void sendEscapeKeypress();
     public native void setName(String name);
 
     public void promptForName(String name) {
@@ -104,6 +146,38 @@ public class ExultActivity extends SDLActivity
         super.onCreate(savedInstanceState);
 
         m_instance = this;
+
+        m_escTextView = new TextView(this);
+        m_escTextView.setBackground(getResources().getDrawable(R.drawable.btn));
+        m_escTextView.setPadding(20, 20, 20, 20);
+        m_escTextView.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
+        m_escTextView.setGravity(Gravity.CENTER);
+        m_escTextView.setText("ESC");
+
+        m_escTextView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    boolean inside =
+                        !(event.getX() < 0 || event.getY() < 0
+                          || event.getX() > v.getMeasuredWidth()
+                          || event.getY() > v.getMeasuredHeight());
+                    switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        m_escTextView.setBackground(getResources().getDrawable(R.drawable.btnpressed));
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        m_escTextView.setBackground(getResources().getDrawable(inside ? R.drawable.btnpressed : R.drawable.btn));
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        m_escTextView.setBackground(getResources().getDrawable(R.drawable.btn));
+                        if (inside) {
+                            sendEscapeKeypress();
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+            });
 
         m_dpadImageView = new ImageView(this);
         m_dpadImageView.setImageResource(R.drawable.dpad_center);
@@ -151,6 +225,8 @@ public class ExultActivity extends SDLActivity
                 }
             });
         hideGameControls();
+        hideButtonControls();
+        mLayout.addView(m_escTextView);
         mLayout.addView(m_dpadImageView);
     }
 
