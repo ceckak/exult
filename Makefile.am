@@ -21,8 +21,12 @@ SUBDIRS =  files conf data shapes imagewin pathfinder \
 	mapedit desktop docs $(MODSDIR)
 
 bin_PROGRAMS = exult
+exult_SOURCES =
+exult_LDADD = libexult.la
 
-exult_SOURCES =	\
+lib_LTLIBRARIES = libexult.la
+
+libexult_la_SOURCES =	\
 	actions.cc	\
 	actions.h	\
 	actorio.cc	\
@@ -132,12 +136,12 @@ EXULTLIBS = \
 	files/sha1/libsha1.la \
 	files/zip/libminizip.la
 
-exult_LDADD = \
+libexult_la_LIBADD = \
 	$(EXULTLIBS) $(PNG_LIBS) \
 	$(SDL_LIBS) $(SYSLIBS) $(x_libraries) $(ICON_FILE) \
 	$(ZLIB_LIBS) $(VORBIS_LIBS) $(VORBISFILE_LIBS) $(OGG_LIBS) $(MT32EMU_LIBS) $(FLUIDSYNTH_LIBS) $(ALSA_LIBS)
 
-exult_DEPENDENCIES = $(ICON_FILE) $(EXULTLIBS)
+libexult_la_DEPENDENCIES = $(ICON_FILE) $(EXULTLIBS)
 
 EXTRA_DIST = 	\
 	autogen.sh \
