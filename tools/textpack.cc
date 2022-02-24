@@ -142,14 +142,14 @@ int main(
 	switch (argv[1][1]) {   // Which function?
 	case 'c':           // Create Flex.
 		if (argc >= 4) {    // Text filename given?
-			ifstream in;    // Open as text.
+			std::unique_ptr<std::istream> in;    // Open as text.
 			try {
-				U7open(in, argv[3], true);
+				in = U7open_in(argv[3], true);
 			} catch (exult_exception &e) {
 				cerr << e.what() << endl;
 				exit(1);
 			}
-			if (Read_text_msg_file(in, strings) == -1)
+			if (!in || Read_text_msg_file(*in, strings) == -1)
 				exit(1);
 		} else          // Default to stdin.
 			if (Read_text_msg_file(cin, strings) == -1)
@@ -169,14 +169,15 @@ int main(
 			exit(1);
 		}
 		if (argc >= 4) {    // Text file given?
-			ofstream out;
+			std::unique_ptr<std::ostream> out;
 			try {
-				U7open(out, argv[3],  true);
+				out = U7open_out(argv[3],  true);
 			} catch (exult_exception &e) {
 				cerr << e.what() << endl;
 				exit(1);
 			}
-			Write_text(out, strings);
+			if (out)
+				Write_text(*out, strings);
 		} else
 			Write_text(cout, strings);
 		break;

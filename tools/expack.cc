@@ -117,12 +117,11 @@ long get_file_size(string &fname) {
 		return 0; // an empty entry
 
 	try {
-		ifstream fin;
-		U7open(fin, fname.c_str(), is_text_file(fname));
+		auto fin = U7open_in(fname.c_str(), is_text_file(fname));
 		// Lets avoid undefined behavior. See
 		// http://cpp.indi.frih.net/blog/2014/09/how-to-read-an-entire-file-into-memory-in-cpp/
-		fin.ignore(std::numeric_limits<std::streamsize>::max());
-		return fin.gcount();
+		fin->ignore(std::numeric_limits<std::streamsize>::max());
+		return fin->gcount();
 	} catch (const std::exception &err) {
 		cerr << err.what() << endl;
 		return 0;
@@ -131,14 +130,13 @@ long get_file_size(string &fname) {
 
 bool Write_Object(U7object &obj, const char *fname) {
 	try {
-		ofstream out;
-		U7open(out, fname, false);
+		auto out = U7open_out(fname, false);
 		size_t l;
 		auto n = obj.retrieve(l);
 		if (!n) {
 			return false;
 		}
-		out.write(reinterpret_cast<char*>(n.get()), l);
+		out->write(reinterpret_cast<char*>(n.get()), l);
 	} catch (const std::exception &err) {
 		cerr << err.what() << endl;
 		return false;
@@ -181,22 +179,26 @@ int main(int argc, char **argv)
 			case 'i': {
 				string path_prefix;
 
-				ifstream respfile;
+				std::unique_ptr<std::istream> respfile;
 				size_t slash = fname.rfind('/');
 				if (slash != string::npos) {
 					path_prefix = fname.substr(0, slash + 1);
 				}
 				set_mode(mode, RESPONSE);
 				try {
-					U7open(respfile, fname.c_str(), true);
+					respfile = U7open_in(fname.c_str(), true);
 				} catch (const file_open_exception &e) {
 					cerr << e.what() << endl;
+					exit(1);
+				}
+				if (!respfile) {
+					cerr << "Failed to open " << fname << endl;
 					exit(1);
 				}
 
 				// Read the output file name
 				string temp;
-				getline(respfile, temp);
+				getline(*respfile, temp);
 				fname = path_prefix + temp;
 
 				// Header file name
@@ -208,8 +210,8 @@ int main(int argc, char **argv)
 
 				unsigned int shnum = 0;
 				int linenum = 2;
-				while (respfile.good()) {
-					getline(respfile, temp);
+				while (respfile->good()) {
+					getline(*respfile, temp);
 					if (!temp.empty()) {
 						const char *ptr = temp.c_str();
 						if (*ptr == ':') {
@@ -234,7 +236,6 @@ int main(int argc, char **argv)
 						linenum++;
 					}
 				}
-				respfile.close();
 			}
 			break;
 			case 'l':
@@ -312,7 +313,7 @@ int main(int argc, char **argv)
 		try {
 			OFileDataSource flex(fname.c_str());
 
-			ofstream header;
+			std::unique_ptr<std::ostream> header;
 			if (hname.empty()) {    // Need header name.
 				hprefix = fname;
 				make_header_name(hprefix);
@@ -321,9 +322,13 @@ int main(int argc, char **argv)
 				make_uppercase(hprefix);
 			}
 			try {
-				U7open(header, hname.c_str(), true);
+				header = U7open_out(hname.c_str(), true);
 			} catch (const file_open_exception &e) {
 				cerr << e.what() << endl;
+				exit(1);
+			}
+			if (!header) {
+				cerr << "Failed to open " << hname << endl;
 				exit(1);
 			}
 
@@ -333,10 +338,10 @@ int main(int argc, char **argv)
 			// The beginning of the header
 			string temp = fname;
 			strip_path(temp);
-			header << "// Header for \"" << temp << "\" Created by expack" << std::endl << std::endl;
-			header << "// DO NOT MODIFY" << std::endl << std::endl;
-			header << "#ifndef " << hprefix << "_INCLUDED" << std::endl;
-			header << "#define " << hprefix << "_INCLUDED" << std::endl << std::endl;
+			*header << "// Header for \"" << temp << "\" Created by expack" << std::endl << std::endl;
+			*header << "// DO NOT MODIFY" << std::endl << std::endl;
+			*header << "#ifndef " << hprefix << "_INCLUDED" << std::endl;
+			*header << "#define " << hprefix << "_INCLUDED" << std::endl << std::endl;
 
 			// The files
 			for (unsigned int i = 0; i < file_names.size(); i++) {
@@ -353,7 +358,7 @@ int main(int argc, char **argv)
 					strip_path(hline);
 					make_header_name(hline);
 					make_uppercase(hline);
-					header << "#define\t" << hprefix << "_" << hline << "\t\t" << i << std::endl;
+					*header << "#define\t" << hprefix << "_" << hline << "\t\t" << i << std::endl;
 				} else {
 					writer.empty_object();
 				}
@@ -361,11 +366,10 @@ int main(int argc, char **argv)
 			writer.flush();
 
 			uint32 crc32val = crc32(fname.c_str());
-			header << std::endl << "#define\t" << hprefix << "_CRC32\t0x";
-			header << std::hex << crc32val << std::dec << "U" << std::endl;
+			*header << std::endl << "#define\t" << hprefix << "_CRC32\t0x";
+			*header << std::hex << crc32val << std::dec << "U" << std::endl;
 
-			header << std::endl << "#endif" << std::endl << std::endl;
-			header.close();
+			*header << std::endl << "#endif" << std::endl << std::endl;
 
 		} catch (const file_open_exception &e) {
 			cerr << e.what() << endl;
