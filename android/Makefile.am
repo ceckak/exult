@@ -36,7 +36,7 @@ APK_ASSETS = $(patsubst %,$(APK_ASSETS_DIR)/%,$(DATA_FILES))
 # Always call the gradle wrapper to update the APK
 .PHONY: $(ANDROID_APK)
 $(ANDROID_APK): $(abs_builddir)/gradlew
-	ANDROID_SDK_ROOT=$(ANDROID_SDK_ROOT) ./gradlew assembleDebug --project-prop EXULT_SOURCE_DIR=$(abs_top_srcdir) --info
+	ANDROID_SDK_ROOT=$(ANDROID_SDK_ROOT) ./gradlew assemble$(APK_BUILD_TYPE) --project-prop EXULT_SOURCE_DIR=$(abs_top_srcdir) --info
 
 # Generate the gradle wrapper
 $(abs_builddir)/gradlew: $(APK_SOURCE_TREE) $(APK_ASSETS) android_packages
