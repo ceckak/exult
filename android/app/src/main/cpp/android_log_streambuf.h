@@ -1,3 +1,5 @@
+#include <jni.h>
+
 #include <streambuf>
 #include <string>
 
@@ -12,4 +14,8 @@ private:
 	const int         priority;
 	const std::string tag;
 	std::string       line_buf;
+
+	JNIEnv*                 m_jniEnv;
+	jobject                 m_exultActivityObject;
+	jmethodID               m_writeToConsoleMethod;
 };
