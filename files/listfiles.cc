@@ -35,6 +35,9 @@ using std::string;
 #include "utils.h"
 #include "listfiles.h"
 
+// TODO: If SDL ever adds directory traversal to rwops, update U7ListFiles() to
+//       use it.
+
 
 // System Specific Code for Windows
 #if defined(_WIN32)
@@ -139,11 +142,14 @@ int U7ListFiles(const std::string &mask, FileList &files) {
 
 #include <glob.h>
 
-int U7ListFiles(const std::string &mask, FileList &files) {
-	glob_t globres;
-	string path(get_system_path(mask));
-	int err = glob(path.c_str(), GLOB_NOSORT, nullptr, &globres);
+#ifdef ANDROID
+#include <SDL_system.h>
+#endif
 
+
+static int U7ListFilesImp(const std::string &path, FileList &files) {
+	glob_t globres;
+	int err = glob(path.c_str(), GLOB_NOSORT, nullptr, &globres);
 
 	switch (err) {
 	case 0:   //OK
@@ -158,6 +164,20 @@ int U7ListFiles(const std::string &mask, FileList &files) {
 		cerr << "Glob error " << err << endl;
 		return err;
 	}
+}
+
+int U7ListFiles(const std::string &mask, FileList &files) {
+    string path(get_system_path(mask));
+    int result = U7ListFilesImp(path, files);
+#ifdef ANDROID
+    // TODO: If SDL ever adds directory traversal to rwops use it instead of
+    // glob() so that we pick up platform-specific paths and behaviors like
+    // this.
+    if (result != 0) {
+        result = U7ListFilesImp(SDL_AndroidGetInternalStoragePath() + ("/" + path), files);
+    }
+#endif
+    return result;
 }
 
 #endif
