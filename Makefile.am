@@ -21,7 +21,11 @@ SUBDIRS =  files conf data shapes imagewin pathfinder \
 	mapedit desktop docs $(MODSDIR)
 
 bin_PROGRAMS = exult
+if SDL_MAIN_NEEDED
+exult_SOURCES = sdl_main.cc
+else
 exult_SOURCES =
+endif
 exult_LDADD = libexult.la
 
 lib_LTLIBRARIES = libexult.la
