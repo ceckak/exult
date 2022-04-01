@@ -424,7 +424,15 @@ else
 fi
 
 # mt32emu midi driver
-AC_CHECK_HEADER(mt32emu/mt32emu.h, HAVEMT32EMU=yes, HAVEMT32EMU=no)
+if test "x$PKG_CONFIG" != "x"; then
+	PKG_CHECK_MODULES(MT32EMU, mt32emu, HAVEMT32EMU=yes, HAVEMT32EMU=no)
+else
+	AC_CHECK_HEADER(mt32emu/mt32emu.h, HAVEMT32EMU=yes, HAVEMT32EMU=no)
+	if test x$enable_static_libs = xno; then
+		MT32EMU_LIBS="-lmt32emu"
+		MT32EMU_CFLAGS=""
+	fi
+fi
 AC_ARG_ENABLE(mt32emu, AS_HELP_STRING([--enable-mt32emu], [Enable built-in mt32emu support]),,enable_mt32emu=no)
 AC_MSG_CHECKING([if we should build mt32emu])
 if test x$HAVEMT32EMU = xyes; then
@@ -432,18 +440,6 @@ if test x$HAVEMT32EMU = xyes; then
 		AC_MSG_RESULT(yes)
 		AC_DEFINE(USE_MT32EMU_MIDI, 1, [Enable mt32emu])
 		AM_CONDITIONAL(BUILD_MT32EMU, true)
-		if test "x$PKG_CONFIG" != "x"; then
-			PKG_CHECK_MODULES(MT32EMU, mt32emu, ,
-				[
-					if test x$enable_static_libs = xno; then
-						MT32EMU_LIBS="-lmt32emu"
-						MT32EMU_CFLAGS=""
-					fi
-				])
-		elif test x$enable_static_libs = xno; then
-			MT32EMU_LIBS="-lmt32emu"
-			MT32EMU_CFLAGS=""
-		fi
 	else
 		AC_MSG_RESULT(no)
 		AM_CONDITIONAL(BUILD_MT32EMU, false)
