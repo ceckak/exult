@@ -5,6 +5,21 @@ ANDROID_APK=$(abs_builddir)/app/build/outputs/apk/debug/app-debug.apk
 androiddir = $(datadir)/exult
 android_DATA=$(ANDROID_APK)
 
+# These are shared with iOS, but need to be staged in the android tree and are not allowed to have
+# a '-' in the filename.
+SHARED_IMAGE_ASSETS = \
+	$(abs_builddir)/app/src/main/res/drawable/btn.png \
+	$(abs_builddir)/app/src/main/res/drawable/btnpressed.png \
+	$(abs_builddir)/app/src/main/res/drawable/dpad_center.png \
+	$(abs_builddir)/app/src/main/res/drawable/dpad_east.png \
+	$(abs_builddir)/app/src/main/res/drawable/dpad_north.png \
+	$(abs_builddir)/app/src/main/res/drawable/dpad_northeast.png \
+	$(abs_builddir)/app/src/main/res/drawable/dpad_northwest.png \
+	$(abs_builddir)/app/src/main/res/drawable/dpad_south.png \
+	$(abs_builddir)/app/src/main/res/drawable/dpad_southeast.png \
+	$(abs_builddir)/app/src/main/res/drawable/dpad_southwest.png \
+	$(abs_builddir)/app/src/main/res/drawable/dpad_west.png
+
 # All the DATA files that getinstalled by a normal build.
 # TODO: Would be ideal to infer this list rather than hard-coding it here.  
 DATA_FILES = \
@@ -35,7 +50,10 @@ APK_SOURCE_TREE = \
 	$(abs_builddir)/app/src/main/cpp \
 	$(abs_builddir)/app/src/main/java/info/exult \
 	$(abs_builddir)/app/src/main/java/org/libsdl \
-	$(abs_builddir)/app/src/main/res \
+	$(abs_builddir)/app/src/main/res/layout \
+	$(abs_builddir)/app/src/main/res/values \
+	$(patsubst $(srcdir)/%,$(abs_builddir)/%,$(wildcard $(srcdir)/app/src/main/res/drawable/*)) \
+	$(SHARED_IMAGE_ASSETS) \
 	$(APK_ASSETS)
 
 # Pass SDL and Exult source directories to gradle as project properties
@@ -70,6 +88,18 @@ $(abs_builddir)/%: $(abs_srcdir)/%
 $(abs_builddir)/app/src/main/java/org/libsdl: $(SDL_SOURCE_DIR)
 	@$(MKDIR_P) $(dir $@)
 	$(LN_S) $(SDL_SOURCE_DIR)/android-project/app/src/main/java/org/libsdl $@
+
+$(abs_builddir)/app/src/main/res/drawable/dpad_center.png: $(abs_top_srcdir)/ios/Images/joypad-glass.png
+	@$(MKDIR_P) $(dir $@)
+	$(LN_S) $< $@
+
+$(abs_builddir)/app/src/main/res/drawable/dpad_%.png: $(abs_top_srcdir)/ios/Images/joypad-glass-%.png
+	@$(MKDIR_P) $(dir $@)
+	$(LN_S) $< $@
+
+$(abs_builddir)/app/src/main/res/drawable/%: $(abs_top_srcdir)/ios/Images/%
+	@$(MKDIR_P) $(dir $@)
+	$(LN_S) $< $@
 
 $(APK_ASSETS_DIR)/%: $(abs_top_srcdir)/data/bg/%
 	@$(MKDIR_P) $(dir $@)
