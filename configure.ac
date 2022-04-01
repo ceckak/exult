@@ -44,6 +44,11 @@ cxx_compilers="g++ clang++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC xlC_r xlC"
 # determine windowing system from 'host'
 AC_MSG_CHECKING([windowing system])
 case "$host_os" in
+	linux-android*)
+		AC_DEFINE(ANDROID, 1, [Using Android])
+		ARCH=android
+		AC_MSG_RESULT([Android])
+		;;
 	linux*)
 		WINDOWING_SYSTEM="-DXWIN"
 		AC_MSG_RESULT([X11 (GNU/Linux)])
@@ -120,6 +125,7 @@ fi
 AC_SUBST(WINDRES)
 
 AM_CONDITIONAL(MACOSX, test x$ARCH = xmacosx)
+AM_CONDITIONAL(ANDROID, test x$ARCH = xandroid)
 
 # ---------------------------------------------------------------------
 # Compilers and other tools
