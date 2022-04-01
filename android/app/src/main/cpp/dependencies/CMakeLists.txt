@@ -28,8 +28,10 @@ file(APPEND ${ENVFILE} "export AR=${ANDROID_TOOLCHAIN_ROOT}/bin/llvm-ar\n")
 file(APPEND ${ENVFILE} "export RANLIB=${ANDROID_TOOLCHAIN_ROOT}/bin/llvm-ranlib\n")
 file(APPEND ${ENVFILE} "export PKG_CONFIG_PATH=${DEPENDENCIES_INSTALL_DIR}/lib/pkgconfig:$PKG_CONFIG_PATH\n")
 file(APPEND ${ENVFILE} "export LDFLAGS=\"${ANDROID_LINKER_FLAGS} ${LDFLAGS}\"\n")
-file(APPEND ${ENVFILE} "export CFLAGS=\"${CMAKE_C_FLAGS}\"\n")
-file(APPEND ${ENVFILE} "export CXXFLAGS=\"${CMAKE_CXX_FLAGS}\"\n")
+
+string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+file(APPEND ${ENVFILE} "export CFLAGS=\"${CMAKE_C_FLAGS_${BUILD_TYPE}}\"\n")
+file(APPEND ${ENVFILE} "export CXXFLAGS=\"${CMAKE_CXX_FLAGS_${BUILD_TYPE}}\"\n")
 
 # CMake flags to forward to cmake-based dependency builds
 set(DEPENDENCIES_CMAKE_DEFAULT_ARGS
