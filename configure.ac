@@ -1047,9 +1047,13 @@ if test x$enable_android_apk = xyes; then
 	AC_PROG_MKDIR_P
 	AC_PROG_LN_S
 
-	# Needed to download SDL sources
+	# Needed to download and patch SDL sources
 	AC_CHECK_PROGS(GIT, git)
 	if test -z "$GIT"; then
+		AC_MSG_ERROR([not found])
+	fi
+	AC_CHECK_PROGS(PATCH, patch)
+	if test -z "$PATCH"; then
 		AC_MSG_ERROR([not found])
 	fi
 

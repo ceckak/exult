@@ -17,6 +17,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++17"
+                arguments "-DSDL_SOURCE_DIR=" + project.getProperty('SDL_SOURCE_DIR')
             }
         }
     }

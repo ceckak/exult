@@ -1,0 +1,118 @@
+Fix CMake build of SDL on Android
+
+In the Android NDK build environment being used for the Exult project, the EXTRA_LIBS variable ends up containing several absolute shared library paths, but the SDL CMake code assumes this variable only contains simple library names and prpends them each with a "-l" when generating the sdl2-config script.  This patch adds additional logic to convert these absolte paths to simple library names and extracts the library search path(s) so that they can also be added to the linker flags.
+
+From: Ken Cecka <ceckak@uw.edu>
+---
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9686ecb..86c1fec 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -2581,18 +2581,22 @@ Libs.private:")
+     set(ENABLE_SHARED_FALSE "")
+   endif()
+ 
++  # Clean up absolute library paths
++  separate_lib_paths(EXTRA_LIBS _EXTRA_LIB_LIST _EXTRA_PATH_LIST)
++  listtostr(_EXTRA_PATH_LIST _EXTRA_PATH_FLAGS "-L")
++
+   # Clean up the different lists
+   if (VITA)
+-    listtostrrev(EXTRA_LIBS _EXTRA_LIBS "-l")
+-    set(SDL_STATIC_LIBS ${SDL_LIBS} ${EXTRA_LDFLAGS} ${_EXTRA_LIBS})
++    listtostrrev(_EXTRA_LIB_LIST _EXTRA_LIBS "-l")
++    set(SDL_STATIC_LIBS ${SDL_LIBS} ${EXTRA_LDFLAGS} ${EXTRA_PATH_FLAGS} ${_EXTRA_LIBS})
+     list(REMOVE_DUPLICATES SDL_STATIC_LIBS)
+     listtostrrev(SDL_STATIC_LIBS _SDL_STATIC_LIBS)
+     set(SDL_STATIC_LIBS ${_SDL_STATIC_LIBS})
+     listtostrrev(SDL_LIBS _SDL_LIBS)
+     set(SDL_LIBS ${_SDL_LIBS})
+   else()
+-    listtostr(EXTRA_LIBS _EXTRA_LIBS "-l")
+-    set(SDL_STATIC_LIBS ${SDL_LIBS} ${EXTRA_LDFLAGS} ${_EXTRA_LIBS})
++    listtostr(_EXTRA_LIB_LIST _EXTRA_LIBS "-l")
++    set(SDL_STATIC_LIBS ${SDL_LIBS} ${EXTRA_LDFLAGS} ${EXTRA_PATH_FLAGS} ${_EXTRA_LIBS})
+     list(REMOVE_DUPLICATES SDL_STATIC_LIBS)
+     listtostr(SDL_STATIC_LIBS _SDL_STATIC_LIBS)
+     set(SDL_STATIC_LIBS ${_SDL_STATIC_LIBS})
+diff --git a/cmake/macros.cmake b/cmake/macros.cmake
+index 84cb4c6..4b78d5b 100644
+--- a/cmake/macros.cmake
++++ b/cmake/macros.cmake
+@@ -64,9 +64,42 @@ macro(MESSAGE_TESTED_OPTION _NAME)
+   message(STATUS "  ${_NAME}${_PAD}(Wanted: ${_REQVALUE}): ${HAVE_${_STRIPPEDNAME}}")
+ endmacro()
+ 
++# Given a list of libraries (_INPUT_LIB_LIST) which may be a mix of library names and
++# library files, convert the files into library names (_OUTPUT_LIB_LIST) and also
++# return a list of library search paths (_OUTPUT_PATH_LIST).
++macro(SEPARATE_LIB_PATHS _INPUT_LIB_LIST _OUTPUT_LIB_LIST _OUTPUT_PATH_LIST)
++  string(LENGTH "${CMAKE_SHARED_LIBRARY_PREFIX}" _PREFIX_LENGTH)
++
++  # process each of the input libraries
++  foreach(_INPUT_LIB ${${_INPUT_LIB_LIST}})
++    # separate out the path, filename-without-extension, and extension
++    get_filename_component(_INPUT_LIB_DIRECTORY ${_INPUT_LIB} DIRECTORY)
++    get_filename_component(_INPUT_LIB_NAME_WLE ${_INPUT_LIB} NAME_WLE)
++    get_filename_component(_INPUT_LIB_LAST_EXT ${_INPUT_LIB} LAST_EXT)
++
++    # if this looks like a library file
++    string(FIND ${_INPUT_LIB_NAME_WLE} ${CMAKE_SHARED_LIBRARY_PREFIX} _INPUT_LIB_PREFIX_START)
++    if ((NOT ${_INPUT_LIB_DIRECTORY} STREQUAL "") AND
++        (${_INPUT_LIB_LAST_EXT} STREQUAL ${CMAKE_SHARED_LIBRARY_SUFFIX}) AND
++	(${_INPUT_LIB_PREFIX_START} EQUAL 0))
++      # note the library search path
++      list(APPEND ${_OUTPUT_PATH_LIST} ${_INPUT_LIB_DIRECTORY})
++      # and the library name (without prefix/suffix)
++      string(SUBSTRING ${_INPUT_LIB_NAME_WLE} ${_PREFIX_LENGTH} -1 _LIB_NAME)
++      list(APPEND ${_OUTPUT_LIB_LIST} ${_LIB_NAME})
++    else()
++      # otherwise, assume it is a suitable lib name already
++      list(APPEND ${_OUTPUT_LIB_LIST} ${_INPUT_LIB})
++    endif()
++  endforeach()
++
++  # don't need redundant library paths
++  list(REMOVE_DUPLICATES ${_OUTPUT_PATH_LIST})
++endmacro()
++
+ macro(LISTTOSTR _LIST _OUTPUT)
+   if(${ARGC} EQUAL 3)
+-    # prefix for each element
++    # prefix for each non-absolute path element
+     set(_LPREFIX ${ARGV2})
+   else()
+     set(_LPREFIX "")
+@@ -74,13 +107,17 @@ macro(LISTTOSTR _LIST _OUTPUT)
+   # Do not use string(REPLACE ";" " ") here to avoid messing up list
+   # entries
+   foreach(_ITEM ${${_LIST}})
+-    set(${_OUTPUT} "${_LPREFIX}${_ITEM} ${${_OUTPUT}}")
++    if(IS_ABSOLUTE ${_ITEM})
++      set(${_OUTPUT} "${_ITEM} ${${_OUTPUT}}")
++    else()
++      set(${_OUTPUT} "${_LPREFIX}${_ITEM} ${${_OUTPUT}}")
++    endif()
+   endforeach()
+ endmacro()
+ 
+ macro(LISTTOSTRREV _LIST _OUTPUT)
+   if(${ARGC} EQUAL 3)
+-    # prefix for each element
++    # prefix for each non-absolute path element
+     set(_LPREFIX ${ARGV2})
+   else()
+     set(_LPREFIX "")
+@@ -88,7 +125,11 @@ macro(LISTTOSTRREV _LIST _OUTPUT)
+   # Do not use string(REPLACE ";" " ") here to avoid messing up list
+   # entries
+   foreach(_ITEM ${${_LIST}})
+-    set(${_OUTPUT} "${${_OUTPUT}} ${_LPREFIX}${_ITEM}")
++    if(IS_ABSOLUTE ${_ITEM})
++      set(${_OUTPUT} "${${_OUTPUT}} ${_ITEM}")
++    else()
++      set(${_OUTPUT} "${${_OUTPUT}} ${_LPREFIX}${_ITEM}")
++    endif()
+   endforeach()
+ endmacro()
+ 
