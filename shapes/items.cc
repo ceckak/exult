@@ -308,14 +308,11 @@ void Setup_text(bool si, bool expansion, bool sibeta) {
 	bool is_patch = is_system_path_defined("<PATCH>");
 	// Always read from exultmsg.txt
 	// TODO: allow multilingual exultmsg.txt files.
-	istream *exultmsg;
+	std::unique_ptr<istream> exultmsg;
 	if (is_patch && U7exists(PATCH_EXULTMSG)) {
-		auto *exultmsgfile = new ifstream();
-		exultmsg = exultmsgfile;
-		U7open(*exultmsgfile, PATCH_EXULTMSG, true);
+		exultmsg = U7open_in(PATCH_EXULTMSG, true);
 	} else {
-		auto *exultmsgbuf = new stringstream();
-		exultmsg = exultmsgbuf;
+	        auto exultmsgbuf = std::make_unique<stringstream>();
 		const char *msgs = BUNDLE_CHECK(BUNDLE_EXULT_FLX, EXULT_FLX);
 		U7object txtobj(msgs, EXULT_FLX_EXULTMSG_TXT);
 		size_t len;
@@ -323,26 +320,27 @@ void Setup_text(bool si, bool expansion, bool sibeta) {
 		if (txt && len > 0) {
 			exultmsgbuf->str(string(reinterpret_cast<char*>(txt.get()), len));
 		}
+		exultmsg = std::move(exultmsgbuf);
 	}
 
 	// Exult new-style messages?
 	if (is_patch && U7exists(PATCH_TEXTMSGS)) {
-		ifstream txtfile;
-		U7open(txtfile, PATCH_TEXTMSGS, true);
-		Setup_text(txtfile, *exultmsg);
+		auto txtfile = U7open_in(PATCH_TEXTMSGS, true);
+		if (txtfile)
+			Setup_text(*txtfile, *exultmsg);
 	} else if (U7exists(TEXTMSGS)) {
-		ifstream txtfile;
-		U7open(txtfile, TEXTMSGS, true);
-		Setup_text(txtfile, *exultmsg);
+		auto txtfile = U7open_in(TEXTMSGS, true);
+		if (txtfile)
+			Setup_text(*txtfile, *exultmsg);
 	} else {
-		ifstream textflx;
+	  std::unique_ptr<istream> textflx;
 		if (is_patch && U7exists(PATCH_TEXT))
-			U7open(textflx, PATCH_TEXT);
+			textflx = U7open_in(PATCH_TEXT);
 		else
-			U7open(textflx, TEXT_FLX);
-		Setup_item_names(textflx, *exultmsg, si, expansion, sibeta);
+			textflx = U7open_in(TEXT_FLX);
+		if (textflx)
+			Setup_item_names(*textflx, *exultmsg, si, expansion, sibeta);
 	}
-	delete exultmsg;
 }
 
 /*
@@ -368,13 +366,12 @@ void Free_text(
 
 void Write_text_file(
 ) {
-	ofstream out;
-
-	U7open(out, PATCH_TEXTMSGS, true);  // (It's a text file.)
-	out << "Exult " << VERSION << " text message file." <<
+	auto out = U7open_out(PATCH_TEXTMSGS, true);  // (It's a text file.)
+	if (!out)
+		return;
+	*out << "Exult " << VERSION << " text message file." <<
 	    "  Written by ExultStudio." << endl;
-	Write_msg_file_section(out, SHAPES_SECT, item_names);
-	Write_msg_file_section(out, MSGS_SECT, text_msgs);
-	Write_msg_file_section(out, MISC_SECT, misc_names);
-	out.close();
+	Write_msg_file_section(*out, SHAPES_SECT, item_names);
+	Write_msg_file_section(*out, MSGS_SECT, text_msgs);
+	Write_msg_file_section(*out, MISC_SECT, misc_names);
 }

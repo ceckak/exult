@@ -282,8 +282,10 @@ int main(int argc, char *argv[]) {
 				throw exult_exception("File size didn't match timbre count. Wont convert.");
 
 			std::cout << "Opening " << outname << " for writing..." << std::endl;
-			std::ofstream sysex_file;
-			U7open(sysex_file, outname, false);
+			auto sysex_file = U7open_out(outname, false);
+			if (!sysex_file) {
+				throw exult_exception(std::string("Failed to open ") + outname);
+			}
 
 			//
 			// All Dev Reset
@@ -292,7 +294,7 @@ int main(int argc, char *argv[]) {
 			num_to_write = fill_sysex_buffer(all_dev_reset_base, 0, 1);
 
 			// Write Reset
-			sysex_file.write(sysex_buffer, num_to_write);
+			sysex_file->write(sysex_buffer, num_to_write);
 
 			//
 			// Display
@@ -314,7 +316,7 @@ int main(int argc, char *argv[]) {
 				                   display_beginning_si);
 
 			// Write Display
-			sysex_file.write(sysex_buffer, num_to_write);
+			sysex_file->write(sysex_buffer, num_to_write);
 
 
 			// Now do each timbre and patch
@@ -338,7 +340,7 @@ int main(int argc, char *argv[]) {
 				                   timbre_mem_size);
 
 				// Write it
-				sysex_file.write(sysex_buffer, num_to_write);
+				sysex_file->write(sysex_buffer, num_to_write);
 
 				//
 				// Patch
@@ -357,7 +359,7 @@ int main(int argc, char *argv[]) {
 				                   &patch_data);
 
 				// Write it
-				sysex_file.write(sysex_buffer, num_to_write);
+				sysex_file->write(sysex_buffer, num_to_write);
 			}
 
 			//
@@ -381,7 +383,7 @@ int main(int argc, char *argv[]) {
 				                   &U7PercussionData[i]);
 
 				// Write Reset
-				sysex_file.write(sysex_buffer, num_to_write);
+				sysex_file->write(sysex_buffer, num_to_write);
 
 				i += count;
 			}
@@ -402,7 +404,7 @@ int main(int argc, char *argv[]) {
 			                   &sa.reserveSettings[0]);
 
 			// Write Reset
-			sysex_file.write(sysex_buffer, num_to_write);
+			sysex_file->write(sysex_buffer, num_to_write);
 
 			//
 			// Display
@@ -424,10 +426,7 @@ int main(int argc, char *argv[]) {
 				                   display_serpent_isle);
 
 			// Write the 'real' Display
-			sysex_file.write(sysex_buffer, num_to_write);
-
-			// Close the file
-			sysex_file.close();
+			sysex_file->write(sysex_buffer, num_to_write);
 
 		} catch (exult_exception &e) {
 			std::cerr << "Something went wrong: " << e.what() << std::endl;
