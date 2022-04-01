@@ -67,11 +67,6 @@ static void switch_slashes(string &name);
 static bool base_to_uppercase(string &str, int count);
 
 
-// Wrap a few functions
-inline int stat(const std::string &file_name, struct stat *buf) {
-	return stat(file_name.c_str(), buf);
-}
-
 // Global factories for instantiating file streams
 static U7IstreamFactory istream_factory = [](const char* s, std::ios_base::openmode mode) {
 	return std::make_unique<std::ifstream>(s, mode);
@@ -378,12 +373,19 @@ void U7remove(
 	DeleteFile(lpszT);
 #else
 
-	struct stat sbuf;
-
 	int uppercasecount = 0;
 	do {
-		bool exists = (stat(name, &sbuf) == 0);
-		if (exists) {
+		std::unique_ptr<std::istream> in;
+		try {
+			if (istream_factory) {
+				in = istream_factory(name.c_str(), std::ios_base::in);
+			} else {
+				in = std::make_unique<std::ifstream>(name.c_str(), std::ios_base::in);
+			}
+		} catch (std::exception &)
+		{}
+		if (in && in->good() && !in->fail()) {
+			in.reset();
 			std::remove(name.c_str());
 		}
 	} while (base_to_uppercase(name, ++uppercasecount));
@@ -427,17 +429,10 @@ std::unique_ptr<std::istream> U7open_static(
 bool U7exists(
     const char *fname         // May be converted to upper-case.
 ) {
-	string name = get_system_path(fname);
-	struct stat sbuf;
-
-	int uppercasecount = 0;
-	do {
-		bool exists = (stat(name, &sbuf) == 0);
-		if (exists)
-			return true; // found it!
-	} while (base_to_uppercase(name, ++uppercasecount));
-
-	// file not found
+	try {
+	    return U7open_in(fname) != nullptr;
+	} catch (std::exception &)
+	{}
 	return false;
 }
 
