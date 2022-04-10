@@ -1131,7 +1131,7 @@ string demunge_ocstring(UCFunc &ucf, const FuncMap &funcmap, const string &asmst
 }
 
 void readbin_U7UCFunc(
-    ifstream &f,
+    std::istream &f,
     UCFunc &ucf,
     const UCOptions &options,
     Usecode_symbol_table *symtbl
@@ -1349,7 +1349,7 @@ void readbin_U7UCFunc(
 	}
 }
 
-void readbin_U8UCFunc(ifstream &f, UCFunc &ucf) {
+void readbin_U8UCFunc(std::istream &f, UCFunc &ucf) {
 	ignore_unused_variable_warning(f, ucf);
 }
 

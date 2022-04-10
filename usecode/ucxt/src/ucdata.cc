@@ -49,7 +49,6 @@ const string CLASSNAME = "class";
 UCData::UCData() = default;
 
 UCData::~UCData() {
-	_file.close();
 	for (auto *func : _funcs)
 		delete func;
 	delete _symtbl;
@@ -288,10 +287,9 @@ void UCData::dump_flags(ostream &o) {
 void UCData::file_open(const string &filename) {
 	/* Open a usecode file */
 	try {
-		_file.clear();
-		U7open(_file, filename.c_str(), false);
+		_file = U7open_in(filename.c_str(), false);
 	} catch (const std::exception &err) {
-		_file.setstate(std::ifstream::failbit);
+		_file->setstate(std::ifstream::failbit);
 	}
 }
 
@@ -299,19 +297,22 @@ void UCData::load_globals(ostream &o) {
 	if (_global_flags_file.empty())
 		return;
 	try {
-		std::ifstream gflags;
-		U7open(gflags, _global_flags_file.c_str(), false);
+		auto gflags = U7open_in(_global_flags_file.c_str(), false);
+		if (!gflags) {
+			cout << "error. failed to open " << _global_flags_file << ". exiting." << endl;
+			exit(1);
+		}
 		std::map<unsigned int, std::string>& FlagMap = UCFunc::FlagMap;
 		std::set<std::string> flags;
 		unsigned int ii = 0;
 		o << "enum GlobalFlags {" << endl;
 		std::string flagname;
-		std::getline(gflags, flagname, '\0');
+		std::getline(*gflags, flagname, '\0');
 		bool first = true;
 		boost::io::ios_flags_saver oflags(o);
 		boost::io::ios_fill_saver fill(o);
 		o << setbase(16) << setfill('0');
-		while (gflags.good()) {
+		while (gflags->good()) {
 			if (!flagname.empty()) {
 				if (flagname[0] == '$')
 					flagname.erase(0, 1);
@@ -328,7 +329,7 @@ void UCData::load_globals(ostream &o) {
 				o << '\t' << flagname << " = 0x" << setw(4) << ii;
 			}
 			ii++;
-			std::getline(gflags, flagname, '\0');
+			std::getline(*gflags, flagname, '\0');
 		};
 		o << endl << "};" << endl << endl;
 	} catch (const std::exception &err) {
@@ -338,11 +339,11 @@ void UCData::load_globals(ostream &o) {
 }
 
 void UCData::load_funcs(ostream &o) {
-	if (options.game_u7() && Usecode_symbol_table::has_symbol_table(_file)) {
+	if (options.game_u7() && Usecode_symbol_table::has_symbol_table(*_file)) {
 		delete _symtbl;
 		if (options.verbose) o << "Loading symbol table..." << endl;
 		_symtbl = new Usecode_symbol_table();
-		_symtbl->read(_file);
+		_symtbl->read(*_file);
 	}
 
 	if (options.verbose) o << "Loading functions..." << endl;
@@ -352,9 +353,9 @@ void UCData::load_funcs(ostream &o) {
 		auto *ucfunc = new UCFunc();
 
 		if (options.game_u7())
-			readbin_U7UCFunc(_file, *ucfunc, options, _symtbl);
+			readbin_U7UCFunc(*_file, *ucfunc, options, _symtbl);
 		else if (options.game_u8())
-			readbin_U8UCFunc(_file, *ucfunc);
+			readbin_U8UCFunc(*_file, *ucfunc);
 		else
 			exit(-1); // can't happen
 
@@ -364,9 +365,9 @@ void UCData::load_funcs(ostream &o) {
 
 		_funcs.push_back(ucfunc);
 		{
-			_file.get();
-			eof = _file.eof();
-			_file.unget();
+			_file->get();
+			eof = _file->eof();
+			_file->unget();
 		}
 	}
 

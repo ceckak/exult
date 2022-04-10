@@ -216,27 +216,25 @@ bool Configuration::read_abs_config_file(const string &input_filename, const str
 
 	is_file = true; // set to file, even if file not found
 
-	std::ifstream ifile;
+	std::unique_ptr<std::istream> ifile;
 	try {
-		U7open(ifile, filename.c_str(), true);
+		ifile = U7open_in(filename.c_str(), true);
 	} catch (exult_exception &) {
 		// configuration file not found
 		return false;
 	}
 
-	if (ifile.fail())
+	if (ifile->fail())
 		return false;
 
 	string  sbuf;
 	string  line;
 	// copies the entire contents of the input file into sbuf
-	getline(ifile, line);
-	while (ifile.good()) {
+	getline(*ifile, line);
+	while (ifile->good()) {
 		sbuf += line + "\n";
-		getline(ifile, line);
+		getline(*ifile, line);
 	}
-
-	ifile.close();
 
 	CTRACE("Configuration::read_config_file - file read");
 
@@ -260,18 +258,17 @@ void Configuration::write_back() {
 	if (!is_file)
 		return; // Don't write back if not from a file
 
-	std::ofstream ofile;
+	std::unique_ptr<std::ostream> ofile;
 	try {
-		U7open(ofile, filename.c_str(), true);
+		ofile = U7open_out(filename.c_str(), true);
 	} catch (const file_open_exception &) {
 		perror("Failed to write configuration file");
 		return;
 	}
-	if (ofile.fail()) {
+	if (ofile->fail()) {
 		perror("Failed to write configuration file");
 	}
-	ofile << dump() << endl;
-	ofile.close();
+	*ofile << dump() << endl;
 }
 
 

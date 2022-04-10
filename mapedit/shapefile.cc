@@ -188,7 +188,6 @@ void Image_file_info::write_file(
 
 Chunks_file_info::~Chunks_file_info(
 ) {
-	delete file;
 }
 
 /*
@@ -531,9 +530,7 @@ static bool Create_file(
 			return true;
 		} else if (strcasecmp(".pal", basename + namelen - 4) == 0) {
 			// Empty 1-palette file.
-			ofstream out;
-			U7open(out, pathname.c_str());  // May throw exception.
-			out.close();        // Empty file.
+			U7open_out(pathname.c_str());  // May throw exception.
 			return true;
 		} else if (strcasecmp("npcs", basename) == 0)
 			return true;        // Don't need file.
@@ -591,10 +588,9 @@ Shape_file_info *Shape_file_set::create(
 		return append(new Image_file_info(basename, fullname,
 		                                  new Vga_file(spath, U7_SHAPE_FONTS, ppath), groups));
 	else if (strcasecmp(basename, "u7chunks") == 0) {
-		auto *file = new std::ifstream;
-		U7open(*file, fullname);
+		auto file = U7open_in(fullname);
 		return append(new Chunks_file_info(basename, fullname,
-		                                   file, groups));
+						   std::move(file), groups));
 	} else if (strcasecmp(basename, "npcs") == 0)
 		return append(new Npcs_file_info(basename, fullname, groups));
 	else if (strcasecmp(basename, "combos.flx") == 0 ||
@@ -603,10 +599,9 @@ Shape_file_info *Shape_file_set::create(
 		                                 new FlexFile(fullname), groups));
 	else if (strcasecmp(".pal", basename + strlen(basename) - 4) == 0) {
 		// Single palette?
-		std::ifstream in;
-		U7open(in, fullname);
-		in.seekg(0, std::ios::end); // Figure size.
-		int sz = in.tellg();
+		auto in = U7open_in(fullname);
+		in->seekg(0, std::ios::end); // Figure size.
+		int sz = in->tellg();
 		delete groups;
 		return append(new Flex_file_info(basename, fullname, sz));
 	} else {            // Not handled above?

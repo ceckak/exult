@@ -1753,12 +1753,12 @@ Usecode_machine *Usecode_machine::create(
 Usecode_internal::Usecode_internal(
 ) : stack(new Usecode_value[1024]) {
 	sp = stack;
-	ifstream file;                // Read in usecode.
+	// Read in usecode.
 	std::cout << "Reading usecode file." << std::endl;
 	try {
-		U7open(file, USECODE);
-		read_usecode(file);
-		file.close();
+		auto file = U7open_in(USECODE);
+		if (file)
+			read_usecode(*file);
 	} catch (const file_exception &f) {
 		if (!Game::is_editing())    // Ok if map-editing.
 			throw;
@@ -1768,9 +1768,9 @@ Usecode_internal::Usecode_internal(
 
 	// Get custom usecode functions.
 	if (is_system_path_defined("<PATCH>") && U7exists(PATCH_USECODE)) {
-		U7open(file, PATCH_USECODE);
-		read_usecode(file, true);
-		file.close();
+		auto file = U7open_in(PATCH_USECODE);
+		if (file)
+			read_usecode(*file, true);
 	}
 
 	//  set_breakpoint();
@@ -3174,17 +3174,18 @@ void Usecode_internal::read(
 	if (Game::get_game_type() != BLACK_GATE && !Game::is_si_beta())
 		keyring->read();    // read keyring data
 
-	ifstream in;
 	try {
-		U7open(in, FLAGINIT);   // Read global flags.
-		in.seekg(0, ios::end);  // Get filesize.
-		size_t filesize = in.tellg();
-		in.seekg(0, ios::beg);
+		auto in = U7open_in(FLAGINIT);   // Read global flags.
+		if (!in) {
+			throw file_read_exception(FLAGINIT);
+		}
+		in->seekg(0, ios::end);  // Get filesize.
+		size_t filesize = in->tellg();
+		in->seekg(0, ios::beg);
 		if (filesize > sizeof(gflags))
 			filesize = sizeof(gflags);
 		memset(&gflags[0], 0, sizeof(gflags));
-		in.read(reinterpret_cast<char *>(gflags), filesize);
-		in.close();
+		in->read(reinterpret_cast<char *>(gflags), filesize);
 	} catch (exult_exception const &e) {
 		if (!Game::is_editing())
 			throw;
@@ -3193,39 +3194,43 @@ void Usecode_internal::read(
 
 	clear_usevars(); // first clear all statics
 	read_usevars();
+	std::unique_ptr<std::istream> in;
 	try {
-		U7open(in, USEDAT);
+		in = U7open_in(USEDAT);
 	} catch (exult_exception &/*e*/) {
 		partyman->set_count(0);
 		partyman->link_party(); // Still need to do this.
 		return;         // Not an error if no saved game yet.
 	}
-	partyman->set_count(Read2(in)); // Read party.
+	if (!in) {
+		throw file_read_exception(USEDAT);
+	}
+	partyman->set_count(Read2(*in)); // Read party.
 	size_t i;   // Blame MSVC
 	for (i = 0; i < EXULT_PARTY_MAX; i++)
-		partyman->set_member(i, Read2(in));
+		partyman->set_member(i, Read2(*in));
 	partyman->link_party();
 	// Timers.
-	int cnt = Read4(in);
+	int cnt = Read4(*in);
 	if (cnt == -1) {
 		int tmr = 0;
-		while ((tmr = Read2(in)) != 0xffff)
-			timers[tmr] = Read4(in);
+		while ((tmr = Read2(*in)) != 0xffff)
+			timers[tmr] = Read4(*in);
 	} else {
 		timers[0] = cnt;
 		for (size_t t = 1; t < 20; t++)
-			timers[t] = Read4(in);
+			timers[t] = Read4(*in);
 	}
-	if (!in.good())
+	if (!in->good())
 		throw file_read_exception(USEDAT);
-	saved_pos.tx = Read2(in);   // Read in saved position.
-	saved_pos.ty = Read2(in);
-	saved_pos.tz = Read2(in);
-	if (!in.good() ||       // Failed.+++++Can remove this later.
+	saved_pos.tx = Read2(*in);   // Read in saved position.
+	saved_pos.ty = Read2(*in);
+	saved_pos.tz = Read2(*in);
+	if (!in->good() ||       // Failed.+++++Can remove this later.
 	        saved_pos.tz < 0 || saved_pos.tz > 13)
 		saved_pos = Tile_coord(-1, -1, -1);
-	saved_map = Read2(in);
-	if (!in.good())         // For compat. with older saves.
+	saved_map = Read2(*in);
+	if (!in->good())         // For compat. with older saves.
 		saved_map = -1;
 }
 
