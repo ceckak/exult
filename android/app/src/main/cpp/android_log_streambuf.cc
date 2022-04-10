@@ -19,18 +19,18 @@
 #include "android_log_streambuf.h"
 
 #include <android/log.h>
-#include <jni.h>
 
 #include <iostream>
 
-extern "C" JNIEXPORT int JNICALL ExultAndroid_main(int argc, char* argv[]) {
-	AndroidLog_streambuf exult_cout(ANDROID_LOG_DEBUG, "exult-android-wrapper");
-	AndroidLog_streambuf exult_cerr(ANDROID_LOG_ERROR, "exult-android-wrapper");
-	auto                 ndk_cout = std::cout.rdbuf(&exult_cout);
-	auto                 ndk_cerr = std::cerr.rdbuf(&exult_cerr);
+AndroidLog_streambuf::AndroidLog_streambuf(int priority, const char* tag)
+		: m_priority{priority}, m_tag{tag} {}
 
-	std::cout.rdbuf(ndk_cout);
-	std::cerr.rdbuf(ndk_cerr);
-
-	return 0;
+std::streambuf::int_type AndroidLog_streambuf::overflow(int_type ch) {
+	if ('\n' == ch || traits_type::eof() == ch) {
+		__android_log_write(m_priority, m_tag.c_str(), m_lineBuf.c_str());
+		m_lineBuf = "";
+	} else {
+		m_lineBuf += ch;
+	}
+	return ch;
 }
