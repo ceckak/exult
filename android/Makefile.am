@@ -38,8 +38,9 @@ APK_SOURCE_TREE = \
 	$(abs_builddir)/app/src/main/res \
 	$(APK_ASSETS)
 
-# Pass Exult source directory to gradle as project property
-GRADLE_PROJECT_PROPS=--project-prop EXULT_SOURCE_DIR=$(abs_top_srcdir)
+# Pass SDL and Exult source directories to gradle as project properties
+SDL_SOURCE_DIR=$(abs_builddir)/sdl-src
+GRADLE_PROJECT_PROPS=--project-prop EXULT_SOURCE_DIR=$(abs_top_srcdir) --project-prop SDL_SOURCE_DIR=$(SDL_SOURCE_DIR)
 
 # Always call the gradle wrapper to update the APK
 .PHONY: $(ANDROID_APK)
@@ -66,7 +67,6 @@ $(abs_builddir)/%: $(abs_srcdir)/%
 	@$(MKDIR_P) $(dir $@)
 	$(LN_S) $< $@
 
-SDL_SOURCE_DIR=$(abs_builddir)/sdl-src
 $(abs_builddir)/app/src/main/java/org/libsdl: $(SDL_SOURCE_DIR)
 	@$(MKDIR_P) $(dir $@)
 	$(LN_S) $(SDL_SOURCE_DIR)/android-project/app/src/main/java/org/libsdl $@
