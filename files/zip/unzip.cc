@@ -29,6 +29,77 @@ using namespace std;
 
 #include "unzip.h"
 
+// Some platforms have non-standard filesystem organizations which can cause a
+// simple fopen() to fail.  Exult also only ever uses this library to open files in U7
+// paths.  Redirectiong file I/O to the U7 abstractions addresses both issues.
+#include "../utils.h"
+
+// The U7* functions here map the U7 std::istream API back to standard std:fopen
+// semantics to better match the original unzip source code.
+static void* U7fopen(const char* filename, const char* mode) {
+	auto handle = new std::unique_ptr<std::istream>;
+	try {
+		*handle = U7open_in(filename, mode);
+	} catch (...) {
+		delete handle;
+		return nullptr;
+	}
+	return handle;
+}
+
+static std::size_t U7fread( void* buffer, std::size_t size, std::size_t count, void* handle ) {
+	std::unique_ptr<std::istream>& stream = *static_cast<std::unique_ptr<std::istream>*>(handle);
+	stream->read(static_cast<char *>(buffer), size * count);
+	return stream->gcount() / size;
+}
+
+static int U7ferror( void* handle ) {
+	std::unique_ptr<std::istream>& stream = *static_cast<std::unique_ptr<std::istream>*>(handle);
+	return stream->fail();
+}
+
+static int U7fseek( void* handle, long offset, int origin ) {
+	std::unique_ptr<std::istream>& stream = *static_cast<std::unique_ptr<std::istream>*>(handle);
+	std::ios_base::seekdir dir;
+	switch (origin) {
+	case SEEK_SET:
+		dir = std::ios_base::beg;
+		break;
+	case SEEK_CUR:
+		dir = std::ios_base::cur;
+		break;
+	case SEEK_END:
+		dir = std::ios_base::end;
+		break;
+	default:
+		return -1;
+	 }
+	stream->seekg(offset, dir);
+	return !stream->good();
+}
+
+static long U7ftell( void* handle ) {
+	std::unique_ptr<std::istream>& stream = *static_cast<std::unique_ptr<std::istream>*>(handle);
+	return stream->tellg();
+}
+
+static int U7fclose( void* handle ) {
+	std::unique_ptr<std::istream>* streamPointer = static_cast<std::unique_ptr<std::istream>*>(handle);
+	delete streamPointer;
+	return 0;
+}
+
+// Stubbing in the U7 file I/O using macros to minimize changes to the original unzip
+// code.
+#define FILE void
+#define fread U7fread
+#define ferror U7ferror
+#define fseek U7fseek
+#define ftell U7ftell
+#define fopen U7fopen
+#define fclose U7fclose
+
+
 #if !defined(unix) && !defined(CASESENSITIVITYDEFAULT_YES) && \
                       !defined(CASESENSITIVITYDEFAULT_NO)
 #define CASESENSITIVITYDEFAULT_NO
