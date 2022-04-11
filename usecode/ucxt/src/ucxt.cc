@@ -100,16 +100,15 @@ int main(int argc, char **argv) {
 	// done because for some reason it started crashing upon piping or redirection to file... wierd.
 	// yes, it's a hack to fix an eldritch bug I could't find... it seems appropriate
 	// FIXME: Problem nolonger exists. Probably should put some 'nice' code in it's place.
-	std::ofstream outputstream;
 	std::streambuf *coutbuf = nullptr;
 	if (!uc.output_redirect().empty()) {
-		U7open(outputstream, uc.output_redirect().c_str(), false);
-		if (outputstream.fail()) {
+		auto outputstream = U7open_out(uc.output_redirect().c_str(), false);
+		if (!outputstream || outputstream->fail()) {
 			cout << "error. failed to open " << uc.output_redirect() << " for writing. exiting." << endl;
 			exit(1);
 		}
 		coutbuf = cout.rdbuf();
-		cout.rdbuf(outputstream.rdbuf());
+		cout.rdbuf(outputstream->rdbuf());
 	}
 	// you may now uncover your eyes <grin>
 

@@ -94,15 +94,14 @@ int MT32EmuMidiDriver::open() {
 		FileStream part1;
 		FileStream part2;
 		if (openROMFile(part1, "MT32A.BIN", false) && openROMFile(part2, "MT32B.BIN", false)) {
-			std::ofstream out;
-			if (U7open(out, "<SAVEHOME>/data/MT32_CONTROL.ROM", false)) {
+			auto out = U7open_out("<SAVEHOME>/data/MT32_CONTROL.ROM", false);
+			if (out) {
 				const Bit8u *data1 = part1.getData();
 				const Bit8u *data2 = part2.getData();
 				for (size_t ii = 0; ii < std::min(part1.getSize(), part2.getSize()); ii++) {
-					out.put(static_cast<char>(data1[ii]));
-					out.put(static_cast<char>(data2[ii]));
+					out->put(static_cast<char>(data1[ii]));
+					out->put(static_cast<char>(data2[ii]));
 				}
-				out.close();
 				controlROMImage = getROM(controlROMFile, "MT32_CONTROL.ROM");
 			}
 		}

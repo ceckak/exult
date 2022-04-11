@@ -312,17 +312,16 @@ void Usecode_browser::setup_list(
 ) {
 	ExultStudio *studio = ExultStudio::get_instance();
 	const char *ucfile = studio->get_text_entry("usecodes_file");
-	ifstream in;
-	U7open(in, ucfile);
+	auto in = U7open_in(ucfile);
 	Usecode_symbol_table symtbl;
-	if (!in.good()) {
+	if (!in->good()) {
 		EStudio::Alert("Error reading '%s'.", ucfile);
 		return;
 	}
 	// Test for symbol table.
-	if (Read4(in) != UCSYMTBL_MAGIC0 || Read4(in) != UCSYMTBL_MAGIC1)
+	if (Read4(*in) != UCSYMTBL_MAGIC0 || Read4(*in) != UCSYMTBL_MAGIC1)
 		return;
-	symtbl.read(in);
+	symtbl.read(*in);
 	gtk_tree_store_clear(model);
 	bool show_funs = studio->get_toggle("view_uc_functions");
 	bool show_classes = studio->get_toggle("view_uc_classes");

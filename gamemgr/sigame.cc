@@ -1255,9 +1255,7 @@ void SI_Game::show_credits() {
 	                     menushapes.extract_shape(0x14)
 	                    );
 	if (credits.run(gwin)) { // Watched through the entire sequence?
-		std::ofstream quotesflg;
-		U7open(quotesflg, "<SAVEGAME>/quotes.flg");
-		quotesflg.close();
+		U7open_out("<SAVEGAME>/quotes.flg");
 	}
 }
 
