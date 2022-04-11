@@ -3,7 +3,9 @@ project("ExultAndroidWrapper")
 
 add_library( exult-android-wrapper
              SHARED
-             exult_android_main.cc )
+
+             exult_android_main.cc
+             android_log_streambuf.cc )
 
 find_library( log-lib log )
 
