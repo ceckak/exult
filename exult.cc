@@ -74,6 +74,8 @@
 #include "keys.h"
 #include "mouse.h"
 #include "ucmachine.h"
+#include "sdlrwopsistream.h"
+#include "sdlrwopsostream.h"
 #include "utils.h"
 #include "version.h"
 #include "u7drag.h"
@@ -267,6 +269,21 @@ int main(
 	bool    showversion = false;
 	int     result;
 	Args    parameters;
+
+	// Use SDL_RWops for file I/O in the main game engine for better
+	// cross-platform support.  Standalone utilities continue to default
+	// to the default std::fstream-based file I/O to avoid taking an SDL
+	// dependency.
+	U7set_istream_factory(
+		[](const char* s, std::ios_base::openmode mode) {
+			return std::make_unique<SdlRwopsIstream>(s, mode);
+		}
+	);
+	U7set_ostream_factory(
+		[](const char* s, std::ios_base::openmode mode) {
+			return std::make_unique<SdlRwopsOstream>(s, mode);
+		}
+	);
 
 	// Declare everything from the commandline that we're interested in.
 	parameters.declare("-h", &needhelp, true);
