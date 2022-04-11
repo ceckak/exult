@@ -1171,6 +1171,8 @@ macosx/exult_studio_info.plist
 Makefile
 android/Makefile
 android/app/build.gradle
+android/lib/Makefile
+android/lib/src/Makefile
 audio/Makefile
 audio/midi_drivers/Makefile
 audio/midi_drivers/timidity/Makefile
